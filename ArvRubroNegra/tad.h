@@ -1,86 +1,101 @@
-#ifndef TAD_H
-#define TAD_H
 
-#define MAX_NOME   100
-#define MAX_TITULO 150
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_NOME   50
+#define MAX_TITULO 50
 #define MAX_ESTILO 50
 
 #define VERMELHO 0
 #define PRETO    1
 
-/* ---------------- Estruturas ---------------- */
 
 /* Lista encadeada de músicas */
 typedef struct Musica {
-    char titulo[MAX_TITULO];
+    char *titulo;
     int minutos;
     struct Musica *prox;
 } Musica;
 
-/* Árvore Rubro-Negra de Álbuns */
-typedef struct Album {
-    char titulo[MAX_TITULO];
+
+
+typedef struct DadosAlbum{
+    char *titulo;
     int ano;
     int qtd_musicas;
     Musica *musicas;       // lista encadeada ordenada de músicas
+} DadosAlbum;
 
-    int cor;
-    struct Album *esq;
-    struct Album *dir;
-    struct Album *pai;
-} Album;
-
-/* Árvore Rubro-Negra de Artistas */
-typedef struct Artista {
-    char nome[MAX_NOME];
-    char estilo[MAX_ESTILO];
+typedef struct DadosArtista{
+    char *nome;
+    char *estilo;
     int qtd_albuns;
-    Album *albuns;         // raiz da RB de álbuns do artista
+    struct NoRB *albuns;  
+} DadosArtista;
 
+typedef enum {
+    NO_ARTISTA,
+    NO_ALBUM
+} TipoNo;
+
+typedef struct NoRB {
+    TipoNo tipo;
+    union {
+        DadosArtista artista;
+        DadosAlbum album;
+    } dado;
     int cor;
-    struct Artista *esq;
-    struct Artista *dir;
-    struct Artista *pai;
-} Artista;
+    struct NoRB *esq;
+    struct NoRB *dir;
+    struct NoRB *pai;
+} NoRB;
 
-/* ---------------- Protótipos ---------------- */
 
-/* Criação e destruição */
-Artista *criarArtista(const char *nome, const char *estilo);
-Album   *criarAlbum(const char *titulo, int ano);
-Musica  *criarMusica(const char *titulo, int minutos);
 
-void liberarMusicas(Musica *lista);
-void liberarAlbuns(Album *raiz);
-void liberarArtistas(Artista *raiz);
 
-/* Inserção */
-Artista *inserirArtista(Artista *raiz, Artista *novo);
-Album   *inserirAlbum(Album *raiz, Album *novo);
-Musica  *inserirMusica(Musica *lista, Musica *nova);
+// ---------------- Protótipos ---------------- 
+// Funções genéricas para árvore rubro-negra
+void rotacaoDireita(NoRB** raiz);
+void rotacaoEsquerda(NoRB** raiz);
+NoRB *criarNo(void *dado, TipoNo tipo, NoRB* pai);
+void troca_cor(NoRB* no);
+void balancearRubroNegra(NoRB** no);
+void inserirNo(NoRB **raiz, void *dado, TipoNo tipo, NoRB* pai,int* flag);
+void imprimirArvore(NoRB *raiz);
+NoRB* buscar_item(NoRB* raiz, char* nome);
+void exibe_dados(NoRB* no);
 
-/* Busca */
-Artista *buscarArtista(Artista *raiz, const char *nome);
-Album   *buscarAlbum(Album *raiz, const char *titulo);
-Musica  *buscarMusica(Musica *lista, const char *titulo);
+//Album   *criarAlbum(const char *titulo, int ano);
+//*Musica  *criarMusica(const char *titulo, int minutos);
 
-/* Remoção */
-Artista *removerArtista(Artista *raiz, const char *nome);
-Album   *removerAlbum(Album *raiz, const char *titulo);
-Musica  *removerMusica(Musica *lista, const char *titulo);
+//void liberarMusicas(Musica *lista);
+//void liberarAlbuns(Album *raiz);
+//void liberarArtistas(Artista *raiz);
 
-/* Impressão */
-void imprimirArtistas(Artista *raiz);
-void imprimirAlbuns(Album *raiz);
-void imprimirMusicas(Musica *lista);
+// Inserção 
+//Album   *inserirAlbum(Album *raiz, Album *novo);
+//Musica  *inserirMusica(Musica *lista, Musica *nova);
 
-/* Operações auxiliares da árvore rubro-negra */
-void rotacaoEsquerdaArtista(Artista **raiz, Artista *x);
-void rotacaoDireitaArtista(Artista **raiz, Artista *y);
-void corrigirInsercaoArtista(Artista **raiz, Artista *z);
+ //Busca 
+//Artista *buscarArtista(Artista *raiz, const char *nome);
+//Album   *buscarAlbum(Album *raiz, const char *titulo);
+//Musica  *buscarMusica(Musica *lista, const char *titulo);
 
-void rotacaoEsquerdaAlbum(Album **raiz, Album *x);
-void rotacaoDireitaAlbum(Album **raiz, Album *y);
-void corrigirInsercaoAlbum(Album **raiz, Album *z);
+ //Remoção 
+//Artista *removerArtista(Artista *raiz, const char *nome);
+//Album   *removerAlbum(Album *raiz, const char *titulo);
+//Musica  *removerMusica(Musica *lista, const char *titulo);
 
-#endif
+ //Impressão 
+//void imprimirAlbuns(Album *raiz);
+//void imprimirMusicas(Musica *lista);
+
+ //Operações auxiliares da árvore rubro-negra 
+//void rotacaoEsquerdaArtista(Artista **raiz, Artista *x);
+//void rotacaoDireitaArtista(Artista **raiz, Artista *y);
+//void corrigirInsercaoArtista(Artista **raiz, Artista *z);
+
+//void rotacaoEsquerdaAlbum(Album **raiz, Album *x);
+//void rotacaoDireitaAlbum(Album **raiz, Album *y);
+//void corrigirInsercaoAlbum(Album **raiz, Album *z);
