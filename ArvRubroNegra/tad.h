@@ -10,18 +10,17 @@
 #define VERMELHO 0
 #define PRETO    1
 
-
 /* Lista encadeada de músicas */
 typedef struct Musica {
     char *titulo;
-    int minutos;
+    char* minutos;
     struct Musica *prox;
 } Musica;
 
 
 
 typedef struct DadosAlbum{
-    char *titulo;
+    char *nome;
     int ano;
     int qtd_musicas;
     Musica *musicas;       // lista encadeada ordenada de músicas
@@ -39,12 +38,14 @@ typedef enum {
     NO_ALBUM
 } TipoNo;
 
-typedef struct NoRB {
-    TipoNo tipo;
-    union {
+typedef union {
         DadosArtista artista;
         DadosAlbum album;
-    } dado;
+} dado;
+
+typedef struct NoRB {
+    TipoNo tipo;
+    dado dado;
     int cor;
     struct NoRB *esq;
     struct NoRB *dir;
@@ -56,46 +57,38 @@ typedef struct NoRB {
 
 // ---------------- Protótipos ---------------- 
 // Funções genéricas para árvore rubro-negra
+void libera_musicas(Musica* lista);
+void libera_albuns(NoRB* album);
 void rotacaoDireita(NoRB** raiz);
 void rotacaoEsquerda(NoRB** raiz);
 NoRB *criarNo(void *dado, TipoNo tipo, NoRB* pai);
+int eh_folha(NoRB* NO);
 void troca_cor(NoRB* no);
+int cor(NoRB* no);
 void balancearRubroNegra(NoRB** no);
 void inserirNo(NoRB **raiz, void *dado, TipoNo tipo, NoRB* pai,int* flag);
 void imprimirArvore(NoRB *raiz);
 NoRB* buscar_item(NoRB* raiz, char* nome);
 void exibe_dados(NoRB* no);
+void move2esqRED(NoRB** h);
+void move2dirRED(NoRB** h);
+int remove_ArvRB(NoRB **raiz,char *nome);
+void copiar_dados(NoRB* destino,NoRB* origem);
+void Procura_menor(NoRB* no,NoRB** menor);
+void libera_conteudo_no(NoRB* n);
+void remover_Menor_Direita(NoRB** NO);
+void remove_NO(NoRB** raiz, char* nome);
 
-//Album   *criarAlbum(const char *titulo, int ano);
-//*Musica  *criarMusica(const char *titulo, int minutos);
 
-//void liberarMusicas(Musica *lista);
-//void liberarAlbuns(Album *raiz);
-//void liberarArtistas(Artista *raiz);
+//Musicas.c
+Musica* criar_musica(char* titulo,char* minutos);
+void cadastra_musica(Musica** lista,char* titulo,char* duracao,int *flag);
+void exibe_musicas(Musica* lista);
+Musica* Busca_musicas(Musica* lista,char* nome);
+void remove_musicas(Musica** lista,char *titulo,int* flag);
 
-// Inserção 
-//Album   *inserirAlbum(Album *raiz, Album *novo);
-//Musica  *inserirMusica(Musica *lista, Musica *nova);
-
- //Busca 
-//Artista *buscarArtista(Artista *raiz, const char *nome);
-//Album   *buscarAlbum(Album *raiz, const char *titulo);
-//Musica  *buscarMusica(Musica *lista, const char *titulo);
-
- //Remoção 
-//Artista *removerArtista(Artista *raiz, const char *nome);
-//Album   *removerAlbum(Album *raiz, const char *titulo);
-//Musica  *removerMusica(Musica *lista, const char *titulo);
-
- //Impressão 
-//void imprimirAlbuns(Album *raiz);
-//void imprimirMusicas(Musica *lista);
-
- //Operações auxiliares da árvore rubro-negra 
-//void rotacaoEsquerdaArtista(Artista **raiz, Artista *x);
-//void rotacaoDireitaArtista(Artista **raiz, Artista *y);
-//void corrigirInsercaoArtista(Artista **raiz, Artista *z);
-
-//void rotacaoEsquerdaAlbum(Album **raiz, Album *x);
-//void rotacaoDireitaAlbum(Album **raiz, Album *y);
-//void corrigirInsercaoAlbum(Album **raiz, Album *z);
+//utils.c
+char confirma_desejo_de_remover_artista(char* nome);
+char confirma_desejo_de_remover_album(char* nome);
+void deixa_string_minuscula(char *s);
+void ler_dados_artista(DadosArtista* artista,char* nome,char* estilo);
