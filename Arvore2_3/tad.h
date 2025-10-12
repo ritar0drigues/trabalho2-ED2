@@ -45,42 +45,33 @@ typedef union {
 
 typedef struct NoRB {
     TipoNo tipo;
-    dado dado;
-    int cor;
+    dado info1;
+    dado info2;
+    int ninfos;
+    struct NoRB* pai;
     struct NoRB *esq;
     struct NoRB *dir;
-    struct NoRB *pai;
+    struct NoRB *meio;
 } NoRB;
 
 
 
 
 // ---------------- Protótipos ---------------- 
-// Funções genéricas para árvore rubro-negra
-void libera_musicas(Musica* lista);
-void libera_albuns(NoRB* album);
-void rotacaoDireita(NoRB** raiz);
-void rotacaoEsquerda(NoRB** raiz);
-NoRB *criarNo(void *dado, TipoNo tipo, NoRB* pai);
+// Funções genéricas para árvore 2-3
+int libera_albuns(NoRB* album);
+NoRB* criar_no(void* dados,NoRB* FEsq, NoRB* FCen,TipoNo tipo,NoRB* pai);
+void copia_dados(void* recebe,void* envia,TipoNo tipo);
+void adiciona_info(NoRB** NO,void* info, NoRB* filho);
 int eh_folha(NoRB* NO);
-void troca_cor(NoRB* no);
-int cor(NoRB* no);
-void balancearRubroNegra(NoRB** no);
-void inserirNo(NoRB **raiz, void *dado, TipoNo tipo, NoRB* pai,int* flag);
+NoRB* quebrar_NO(NoRB** NO,void* info, NoRB* filho,void** sobe);
+NoRB* inserirNo(NoRB **raiz, void *dados, TipoNo tipo, NoRB* pai, void* sobe, int* flag);
+void exibe_dados(dado dado,TipoNo tipo);
 void imprimirArvore(NoRB *raiz);
-NoRB* buscar_item(NoRB* raiz, char* nome);
-void exibe_dados(NoRB* no);
-void move2esqRED(NoRB** h);
-void move2dirRED(NoRB** h);
-int remove_ArvRB(NoRB **raiz,char *nome);
-void copiar_dados(NoRB* destino,NoRB* origem);
-void Procura_menor(NoRB* no,NoRB** menor);
-void libera_conteudo_no(NoRB* n);
-void remover_Menor_Direita(NoRB** NO);
-void remove_NO(NoRB** raiz, char* nome);
-
+dado* buscar_item(NoRB* raiz, char* nome);
 
 //Musicas.c
+void libera_musicas(Musica* lista);
 Musica* criar_musica(char* titulo,char* minutos);
 void cadastra_musica(Musica** lista,char* titulo,char* duracao,int *flag);
 void exibe_musicas(Musica* lista);

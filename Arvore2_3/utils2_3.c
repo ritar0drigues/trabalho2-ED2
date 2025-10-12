@@ -27,7 +27,7 @@ void ler_dados_artista(DadosArtista* artista,char* nome,char* estilo){
     (*artista).albuns = NULL;
 }
 
-void ler_dados_album(DadosAlbum* album, char* nome, int* ano){
+void ler_dados_album(DadosAlbum* album, char* nome, int *ano){
     printf("Informe o  nome do album:\n");
     scanf(" %49[^\n]",nome);
     printf("Informe o ano do album:\n");

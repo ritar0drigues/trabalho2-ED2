@@ -3,8 +3,8 @@
 #include <string.h>
 #include "tad.h"
 
-void menu_musicas(Musica** lista,NoRB* album){
-     int op = 0;
+void menu_musicas(Musica** lista,dado* album){
+    int op = 0;
     do{
         printf(" ___________________\n");
         printf("|MENU               |\n");
@@ -28,11 +28,11 @@ void menu_musicas(Musica** lista,NoRB* album){
                 scanf("%49[^\n]",duracao);
                 getchar();
                 int flag = 0;
-                if(validar_duracao(duracao)){
+                if(validarFormatoduracao(duracao)){
                     cadastra_musica(lista,titulo,duracao,&flag);
                     if(flag){
+                        album->album.qtd_musicas++;
                         printf("Musica cadastrada.\n");
-                        album->dado.album.qtd_musicas++;
                     }
                     else{
                         printf("Erro!!!Música não cadastrada.\n");
@@ -81,7 +81,7 @@ void menu_musicas(Musica** lista,NoRB* album){
                     int flag = 0;
                     remove_musicas(lista,nome,&flag);
                     if(flag){
-                        album->dado.album.qtd_musicas--;
+                        album->album.qtd_musicas--;
                         printf("Musica %s removida com sucesso.\n",nome);
                     }
                     else{
@@ -104,7 +104,7 @@ void menu_musicas(Musica** lista,NoRB* album){
     }while(op!=5);
 }
 
-void menu_albuns(NoRB** raiz,NoRB* artista){
+void menu_albuns(NoRB** raiz, dado* artista){
     int op = 0;
     do{
         printf(" ___________________\n");
@@ -112,9 +112,9 @@ void menu_albuns(NoRB** raiz,NoRB* artista){
         printf("|1-Cadastrar Album  |\n");
         printf("|2-Listar Albuns    |\n");
         printf("|3-Buscar           |\n");
-        printf("|4-Remover albuns   |\n");
-        printf("|5-Editar album     |\n");
-        printf("|6-Sair             |\n");
+        //printf("|4-Remover albuns   |\n");
+        printf("|4-Editar album     |\n");
+        printf("|5-Sair             |\n");
         printf("|___________________|\n");
         scanf("%d", &op);
         getchar();
@@ -123,24 +123,20 @@ void menu_albuns(NoRB** raiz,NoRB* artista){
             case 1:{
                     DadosAlbum album;
                     char nome[MAX_NOME];
-                    int ano;
                     int flag = 0;
+                    int ano = 0;
                     ler_dados_album(&album,nome,&ano);
                     if(ano>1800 && ano<=2025){
-                        inserirNo(raiz, &album, NO_ALBUM, NULL,&flag);
+                        inserirNo(raiz, &album, NO_ALBUM, NULL,NULL,&flag);
                         if(flag){
+                            artista->artista.qtd_albuns++;
                             printf("Album cadastrado com sucesso.\n");
-                            artista->dado.artista.qtd_albuns++;
-                        }
-                        if((*raiz)){
-                            (*raiz)->cor = PRETO;
                         }
                     }
                     else{
-                        printf("Ano inválido! O ano deve ser de 1801 a 2025.\n");
+                        printf("Ano inválido.\n");
                     }
                     // liberar memória temporária
-                    free(album.ano);
                     free(album.nome);
                 break;
             }
@@ -158,16 +154,16 @@ void menu_albuns(NoRB** raiz,NoRB* artista){
                 printf("Informe o nome do album que deseja buscar.\n");
                 scanf("%49[^\n]", nome);
                 getchar();
-                NoRB* resultado = buscar_item((*raiz), nome);
+                dado* resultado = buscar_item((*raiz), nome);
                 if(resultado){
-                    exibe_dados(resultado);
+                    exibe_dados(*resultado,NO_ALBUM);
                 }
                 else{
                     printf("Album %s não encontrado.\n", nome);
                 }
                 break;
             }
-            case 4:{
+            /*case 4:{
                 char nome[50];
                 printf("Informe o nome do album que deseja remover.\n");
                 scanf("%49[^\n]", nome);
@@ -176,7 +172,7 @@ void menu_albuns(NoRB** raiz,NoRB* artista){
 
                 if(opcao=='1'){
                     if(remove_ArvRB(raiz,nome)){
-                        artista->dado.artista.qtd_albuns--;
+                        album->dado.album.qtd_musicas--;
                         printf("Album %s removido com sucesso.\n", nome);
                     }
                     else{
@@ -187,29 +183,29 @@ void menu_albuns(NoRB** raiz,NoRB* artista){
                     printf("Remocao cancelada.\n");
                 }
                 break;
-            }
-            case 5:{
+            }*/
+            case 4:{
                 char album[50];
                 printf("Informe o nome do album do qual deseja editar as músicas.\n");
                 scanf("%49[^\n]", album);
                 getchar();
-                NoRB* result = buscar_item((*raiz),album);
+                dado* result = buscar_item((*raiz),album);
                 if(result){
-                    menu_musicas(&(result->dado.album.musicas),result);
+                    menu_musicas(&(result->album.musicas),result);
                 }
                 else{
                     printf("Album não encontrado para esse artista.\n");
                 }
                 break;
             }
-            case 6:
+            case 5:
                 printf("voltando...");
                 break;
-        default:
-                printf("ERRO!! Informe uma opcao válida.\n");
-                break;
-        }
-    }while(op!=6);
+            default:
+                    printf("ERRO!! Informe uma opcao válida.\n");
+                    break;
+            }
+    }while(op!=5);
 }
 
 int main(){
@@ -221,9 +217,9 @@ int main(){
         printf("|1-Cadastrar Artista|\n");
         printf("|2-Listar Artistas  |\n");
         printf("|3-Buscar           |\n");
-        printf("|4-Remover artista  |\n");
-        printf("|5-editar albuns    |\n");
-        printf("|6-Sair             |\n");
+        //printf("|4-Remover artista  |\n");
+        printf("|4-editar albuns    |\n");
+        printf("|5-Sair             |\n");
         printf("|___________________|\n");
         scanf("%d", &op);
         getchar();
@@ -236,12 +232,9 @@ int main(){
             int flag = 0;
             ler_dados_artista(&artista,nome,estilo);
             if(validar_estilo(estilo)){
-                inserirNo(&raiz, &artista, NO_ARTISTA, NULL,&flag);
+                inserirNo(&raiz, &artista, NO_ARTISTA, NULL,NULL,&flag);
                 if(flag){
                     printf("Artista cadastrado com sucesso.\n");
-                }
-                if(raiz){
-                    raiz->cor = PRETO;
                 }
             }
             else{
@@ -266,21 +259,22 @@ int main(){
             printf("Informe o nome do artista que deseja buscar.\n");
             scanf("%49[^\n]", nome);
             getchar();
-            NoRB* resultado = buscar_item(raiz, nome);
+            dado* resultado = buscar_item(raiz, nome);
             if(resultado){
-                exibe_dados(resultado);
+                exibe_dados(*resultado,NO_ARTISTA);
             }
             else{
                 printf("Artista %s não encontrado.\n", nome);
             }
             break;
         }
-        case 4:{
+        /*case 4:{
             char nome[50];
             printf("Informe o nome do artista que deseja remover.\n");
             scanf("%49[^\n]", nome);
             getchar();
             char opcao = confirma_desejo_de_remover_artista(nome);
+
             if(opcao=='1'){
                 if(remove_ArvRB(&raiz,nome)){
                     printf("Artista %s removido(a) com sucesso.\n", nome);
@@ -293,22 +287,22 @@ int main(){
                 printf("Remocao cancelada.\n");
             }
             break;
-        }
-        case 5:{
+        }*/
+        case 4:{
             char nome[MAX_NOME];
-            printf("Informe o nome do artista do qual deseja editar os albuns.\n");
+            printf("Informe o nome do artista do qual deseja ver os albuns.\n");
             scanf("%49[^\n]", nome);
             getchar();
-            NoRB* resultado = buscar_item(raiz,nome);
+            dado* resultado = buscar_item(raiz,nome);
             if(resultado){
-                menu_albuns(&(resultado->dado.artista.albuns),resultado);
+                menu_albuns(&(resultado->artista.albuns), resultado);
             }
             else{
                 printf("Não existe nenhum artista de nome %s cadastrado.\n", nome);
             }
             break;
         }
-        case 6:{
+        case 5:{
             printf("Encerrando...\n");
             break;
         }
@@ -316,6 +310,6 @@ int main(){
             printf("Erro!!Informe uma opção válida.\n");
             break;
         }
-    }while(op != 6);
+    }while(op != 5);
     return 0;
 }

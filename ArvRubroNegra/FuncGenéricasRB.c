@@ -3,16 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-void libera_albuns(NoRB* album){
-    if(album){
-        libera_albuns(album->esq);
-        libera_albuns(album->dir);
-        free(album->dado.album.nome);
-        libera_musicas(album->dado.album.musicas);
-        free(album);
-    }
-}
-
 void rotacaoDireita(NoRB** raiz){
     int cor = (*raiz)->cor;
     NoRB* aux = (*raiz)->esq;
@@ -69,16 +59,18 @@ int eh_folha(NoRB* NO){
 }
 
 
-void troca_cor(NoRB* no){
-    if(no->esq) no->esq->cor = PRETO;
-    if(no->dir) no->dir->cor = PRETO;
-    if(no->cor==PRETO){
-        no->cor = VERMELHO;
-    }
-    else{
-        no->cor = PRETO;
+void troca_cor(NoRB* no) {
+    if (no) {
+        if(no->esq){
+            no->esq->cor = (cor(no->esq) == PRETO) ? VERMELHO : PRETO;
+        }
+        if(no->dir){
+            no->dir->cor = (cor(no->esq) == PRETO) ? VERMELHO : PRETO;
+        }
+        no->cor = (no->cor == PRETO) ? VERMELHO : PRETO;
     }
 }
+
 
 int cor(NoRB* no){
     return no ? no->cor : PRETO;
@@ -195,22 +187,20 @@ void move2dirRED(NoRB** h) {
 }
 
 int remove_ArvRB(NoRB **raiz,char *nome){
+    int removeu = 0;
     NoRB* remover = buscar_item((*raiz),nome);
     if(remover){
         remove_NO(raiz,nome);
         if((*raiz)!=NULL){
             (*raiz)->cor = PRETO;
         }
-        return 1;
+        removeu =1;
     }
-    else{
-        return 0;
-    }
+    return removeu;
 }
 
 void copiar_dados(NoRB* destino,NoRB* origem){
     if((destino && origem) && (destino->tipo==origem->tipo)){
-        //destino->cor = origem->cor;
         if(destino->tipo  == NO_ARTISTA){
             free(destino->dado.artista.estilo);
             free(destino->dado.artista.nome);
@@ -243,11 +233,9 @@ void libera_conteudo_no(NoRB* n) {
         if (n->tipo == NO_ARTISTA) {
             free(n->dado.artista.nome);
             free(n->dado.artista.estilo);
-            libera_albuns(n->dado.artista.albuns);
         } 
         else {
             free(n->dado.album.nome);
-            libera_musicas(n->dado.album.musicas);
         }
     }
 }
@@ -284,8 +272,13 @@ void remove_NO(NoRB** raiz, char* nome){
             }
             if(strcmp(nome,(*raiz)->dado.artista.nome)==0 && (*raiz)->dir == NULL){
                 free((*raiz)->dado.artista.nome);
-                free((*raiz)->dado.artista.estilo);
-                libera_albuns((*raiz)->dado.artista.albuns);
+                if((*raiz)->tipo == NO_ARTISTA){
+                    free((*raiz)->dado.artista.estilo);
+                    libera_albuns((*raiz)->dado.artista.albuns);
+                }
+                else{
+                    libera_musicas((*raiz)->dado.album.musicas);
+                }
                 free(*raiz);
                 *raiz = NULL;
             }
