@@ -32,7 +32,7 @@ void ler_dados_album(DadosAlbum* album, char* nome, int* ano){
     scanf(" %49[^\n]",nome);
     printf("Informe o ano do album:\n");
     scanf("%d", ano);
-    album->nome = strdup(nome);
+    album->titulo = strdup(nome);
     album->ano = *ano;
     album->qtd_musicas = 0;
     album->musicas = NULL;

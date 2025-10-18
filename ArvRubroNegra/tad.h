@@ -3,6 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef _MSC_VER
+// Garante que strdup e strcasecmp fiquem declaradas no MinGW/GCC
+char *strdup(const char *s);
+int strcasecmp(const char *s1, const char *s2);
+#endif
+
 #define MAX_NOME   50
 #define MAX_TITULO 50
 #define MAX_ESTILO 50
@@ -13,14 +19,14 @@
 /* Lista encadeada de músicas */
 typedef struct Musica {
     char *titulo;
-    char* minutos;
+    char *minutos; // duração como string "MM:SS"
     struct Musica *prox;
 } Musica;
 
 
 
 typedef struct DadosAlbum{
-    char *nome;
+    char *titulo; // título do álbum
     int ano;
     int qtd_musicas;
     Musica *musicas;       // lista encadeada ordenada de músicas
@@ -66,7 +72,7 @@ int eh_folha(NoRB* NO);
 void troca_cor(NoRB* no);
 int cor(NoRB* no);
 void balancearRubroNegra(NoRB** no);
-void inserirNo(NoRB **raiz, void *dado, TipoNo tipo, NoRB* pai,int* flag);
+void inserirNo(NoRB **raiz, void *dado, TipoNo tipo, NoRB* pai);
 void imprimirArvore(NoRB *raiz);
 NoRB* buscar_item(NoRB* raiz, char* nome);
 void exibe_dados(NoRB* no);
@@ -95,3 +101,6 @@ void ler_dados_artista(DadosArtista* artista,char* nome,char* estilo);
 void ler_dados_album(DadosAlbum* album, char* nome, int* ano);
 int validar_estilo(const char* estilo);
 int validarFormatoduracao(const char* duracao);
+void balancearremocao(NoRB** no);
+
+int seed(int num, NoRB **raiz);

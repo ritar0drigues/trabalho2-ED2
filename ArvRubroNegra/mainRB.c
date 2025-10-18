@@ -28,7 +28,7 @@ void menu_musicas(Musica** lista,NoRB* album){
                 scanf("%49[^\n]",duracao);
                 getchar();
                 int flag = 0;
-                if(validar_duracao(duracao)){
+                if(validarFormatoduracao(duracao)){
                     cadastra_musica(lista,titulo,duracao,&flag);
                     if(flag){
                         printf("Musica cadastrada.\n");
@@ -124,14 +124,11 @@ void menu_albuns(NoRB** raiz,NoRB* artista){
                     DadosAlbum album;
                     char nome[MAX_NOME];
                     int ano;
-                    int flag = 0;
                     ler_dados_album(&album,nome,&ano);
                     if(ano>1800 && ano<=2025){
-                        inserirNo(raiz, &album, NO_ALBUM, NULL,&flag);
-                        if(flag){
-                            printf("Album cadastrado com sucesso.\n");
-                            artista->dado.artista.qtd_albuns++;
-                        }
+                        inserirNo(raiz, &album, NO_ALBUM, NULL);
+                        printf("Album cadastrado com sucesso.\n");
+                        artista->dado.artista.qtd_albuns++;
                         if((*raiz)){
                             (*raiz)->cor = PRETO;
                         }
@@ -140,8 +137,7 @@ void menu_albuns(NoRB** raiz,NoRB* artista){
                         printf("Ano inválido! O ano deve ser de 1801 a 2025.\n");
                     }
                     // liberar memória temporária
-                    free(album.ano);
-                    free(album.nome);
+                    free(album.titulo);
                 break;
             }
             case 2:{
@@ -214,6 +210,8 @@ void menu_albuns(NoRB** raiz,NoRB* artista){
 
 int main(){
     NoRB* raiz = NULL;
+    seed(100, &raiz);
+    
     int op = 0;
     do{
         printf(" ___________________\n");
@@ -233,13 +231,10 @@ int main(){
             DadosArtista artista;
             char nome[MAX_NOME];
             char estilo[MAX_ESTILO];
-            int flag = 0;
             ler_dados_artista(&artista,nome,estilo);
             if(validar_estilo(estilo)){
-                inserirNo(&raiz, &artista, NO_ARTISTA, NULL,&flag);
-                if(flag){
-                    printf("Artista cadastrado com sucesso.\n");
-                }
+                inserirNo(&raiz, &artista, NO_ARTISTA, NULL);
+                printf("Artista cadastrado com sucesso.\n");
                 if(raiz){
                     raiz->cor = PRETO;
                 }

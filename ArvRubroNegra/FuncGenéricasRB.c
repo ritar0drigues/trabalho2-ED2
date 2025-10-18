@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Rotação à direita
 void rotacaoDireita(NoRB** raiz){
     int cor = (*raiz)->cor;
     NoRB* aux = (*raiz)->esq;
@@ -15,6 +16,7 @@ void rotacaoDireita(NoRB** raiz){
     (*raiz) = aux;
 }
 
+// Rotação à esquerda
 void rotacaoEsquerda(NoRB** raiz){
     int cor = (*raiz)->cor;
     NoRB* aux = (*raiz)->dir;
@@ -31,6 +33,7 @@ void rotacaoEsquerda(NoRB** raiz){
     (*raiz) = aux;
 }
 
+// Cria um novo nó (duplica strings internas)
 NoRB *criarNo(void *dado, TipoNo tipo, NoRB* pai){
     NoRB* no = (NoRB*) malloc(sizeof(NoRB));
     no->tipo = tipo;
@@ -43,7 +46,8 @@ NoRB *criarNo(void *dado, TipoNo tipo, NoRB* pai){
     }
     else if (tipo == NO_ALBUM) {
         DadosAlbum* album = (DadosAlbum*)dado;
-        no->dado.album.nome = strdup(album->nome);
+        /* Ajuste: campo é 'titulo' em DadosAlbum */
+        no->dado.album.titulo = strdup(album->titulo);
         no->dado.album.ano = album->ano;
         no->dado.album.qtd_musicas = album->qtd_musicas;
         no->dado.album.musicas = NULL;
@@ -59,16 +63,12 @@ int eh_folha(NoRB* NO){
 }
 
 
+// Inverte cores dos filhos e do nó atual (usado no balanceamento)
 void troca_cor(NoRB* no) {
-    if (no) {
-        if(no->esq){
-            no->esq->cor = (cor(no->esq) == PRETO) ? VERMELHO : PRETO;
-        }
-        if(no->dir){
-            no->dir->cor = (cor(no->esq) == PRETO) ? VERMELHO : PRETO;
-        }
-        no->cor = (no->cor == PRETO) ? VERMELHO : PRETO;
-    }
+    if (!no) return;
+    if (no->esq) no->esq->cor = PRETO;
+    if (no->dir) no->dir->cor = PRETO;
+    no->cor = (no->cor == PRETO) ? VERMELHO : PRETO;
 }
 
 
@@ -76,7 +76,8 @@ int cor(NoRB* no){
     return no ? no->cor : PRETO;
 }
 
-void balancearRubroNegra(NoRB** no){
+// Balanceamento utilizado após inserção
+void balancearInsercao(NoRB** no){
     if(*no){
         if(!eh_folha(*no)){
             if(cor((*no)->dir) == VERMELHO && cor((*no)->esq) == PRETO){
@@ -94,16 +95,46 @@ void balancearRubroNegra(NoRB** no){
     }
 }
 
-void inserirNo(NoRB **raiz, void *dado, TipoNo tipo, NoRB* pai,int* flag){
+// Função exposta (prototipada em tad.h) — chama o balanceamento de inserção
+void balancearRubroNegra(NoRB** no){
+    balancearInsercao(no);
+}
+
+// Balanceamento utilizado após remoção
+void balancearremocao(NoRB** no){
+    if(*no){
+        if(!eh_folha(*no)){
+            if(cor((*no)->dir) == VERMELHO){
+                rotacaoEsquerda(no);
+            }
+            if((*no)->esq!=NULL){
+                if(cor((*no)->esq) == VERMELHO && cor((*no)->esq->esq) == VERMELHO){
+                    rotacaoDireita(no);
+                }
+            }            
+            if(cor((*no)->esq) == VERMELHO && cor((*no)->dir) == VERMELHO){
+                troca_cor((*no));
+            }
+        }
+    }
+}
+
+// Insere nó (usa strcmp assumindo que estamos inserindo por nome/título)
+void inserirNo(NoRB **raiz, void *dado, TipoNo tipo, NoRB* pai){
     if((*raiz)){
-        int cmp;
-        DadosArtista* artista = (DadosArtista*)dado;
-        cmp = strcmp((*raiz)->dado.artista.nome, artista->nome);
+        int cmp = 0;
+        if (tipo == NO_ARTISTA) {
+            DadosArtista* artista = (DadosArtista*)dado;
+            cmp = strcmp((*raiz)->dado.artista.nome, artista->nome);
+        } else if (tipo == NO_ALBUM) {
+            DadosAlbum* album = (DadosAlbum*)dado;
+            cmp = strcmp((*raiz)->dado.album.titulo, album->titulo);
+        }
         if(cmp>0){
-            inserirNo(&(*raiz)->esq, dado, tipo, (*raiz),flag);
+            inserirNo(&(*raiz)->esq, dado, tipo, (*raiz));
         }
         else if(cmp<0){
-            inserirNo(&(*raiz)->dir, dado, tipo, (*raiz),flag);   
+            inserirNo(&(*raiz)->dir, dado, tipo, (*raiz));   
         }
         else{
             printf("Elemento já cadastrado.\n");
@@ -113,19 +144,19 @@ void inserirNo(NoRB **raiz, void *dado, TipoNo tipo, NoRB* pai,int* flag){
     else{
         NoRB *novo = criarNo(dado, tipo, pai);
         (*raiz) = novo;
-        *flag = 1;
     }
 }
 
+// Impressão em-ordem
 void imprimirArvore(NoRB *raiz){
     if(raiz){
         imprimirArvore(raiz->esq);
-        printf("%d\n", raiz->cor);
+        //printf("cor=%d\n", raiz->cor);
         if (raiz->tipo == NO_ARTISTA){
             printf("Artista: %s | Estilo: %s\n", raiz->dado.artista.nome, raiz->dado.artista.estilo);
         } 
         else if(raiz->tipo == NO_ALBUM){
-            printf("Álbum: %s | Ano: %d\n", raiz->dado.album.nome, raiz->dado.album.ano);
+            printf("Álbum: %s | Ano: %d\n", raiz->dado.album.titulo, raiz->dado.album.ano);
         }
         imprimirArvore(raiz->dir);
     }
@@ -157,7 +188,7 @@ void exibe_dados(NoRB* no){
            printf("ALBUNS: %d\n", no->dado.artista.qtd_albuns);
         }
         else{
-            printf("NOME: %s \n", no->dado.album.nome);
+            printf("TITULO: %s \n", no->dado.album.titulo);
             printf("ANO: %d \n", no->dado.album.ano);
             printf("MUSICAS: %d\n",no->dado.album.qtd_musicas);
         }
@@ -210,10 +241,10 @@ void copiar_dados(NoRB* destino,NoRB* origem){
             destino->dado.artista.qtd_albuns = origem->dado.artista.qtd_albuns;
         }
         else{
-            free(destino->dado.album.nome);
+            free(destino->dado.album.titulo);
             destino->dado.album.musicas = origem->dado.album.musicas;
             destino->dado.album.ano = origem->dado.album.ano;
-            destino->dado.album.nome = strdup(origem->dado.album.nome);
+            destino->dado.album.titulo = strdup(origem->dado.album.titulo);
             destino->dado.album.qtd_musicas = origem->dado.album.qtd_musicas;
         }
     }
@@ -235,7 +266,7 @@ void libera_conteudo_no(NoRB* n) {
             free(n->dado.artista.estilo);
         } 
         else {
-            free(n->dado.album.nome);
+            free(n->dado.album.titulo);
         }
     }
 }
@@ -297,6 +328,6 @@ void remove_NO(NoRB** raiz, char* nome){
                 }
             }
         }
-        balancearRubroNegra(raiz);
+        balancearremocao(raiz);
     }     
 }

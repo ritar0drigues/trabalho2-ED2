@@ -1,0 +1,1 @@
+gcc -o seed_artistas.exe seed_artistas.c FuncGenéricasRB.c mainRB.c albuns.c MusicasRB.c utils.c -I. -std=c11 -Wall -Wextra

@@ -127,7 +127,8 @@ void menu_albuns(NoRB** raiz, dado* artista){
                     int ano = 0;
                     ler_dados_album(&album,nome,&ano);
                     if(ano>1800 && ano<=2025){
-                        inserirNo(raiz, &album, NO_ALBUM, NULL,NULL,&flag);
+                        void* sobe = NULL;
+                        inserirNo(raiz, &album, NO_ALBUM, NULL,&sobe,&flag);
                         if(flag){
                             artista->artista.qtd_albuns++;
                             printf("Album cadastrado com sucesso.\n");
@@ -210,6 +211,7 @@ void menu_albuns(NoRB** raiz, dado* artista){
 
 int main(){
     NoRB* raiz = NULL;
+    //seed(1000, &raiz);
     int op = 0;
     do{
         printf(" ___________________\n");
@@ -232,7 +234,8 @@ int main(){
             int flag = 0;
             ler_dados_artista(&artista,nome,estilo);
             if(validar_estilo(estilo)){
-                inserirNo(&raiz, &artista, NO_ARTISTA, NULL,NULL,&flag);
+                void* sobe = NULL;
+                inserirNo(&raiz, &artista, NO_ARTISTA, NULL,&sobe,&flag);
                 if(flag){
                     printf("Artista cadastrado com sucesso.\n");
                 }

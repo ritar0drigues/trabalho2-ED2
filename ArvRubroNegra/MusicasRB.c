@@ -79,8 +79,8 @@ void remove_musicas(Musica** lista,char *titulo,int* flag){
         else{
             anterior->prox = atual->prox;
         }
-        free(atual->minutos);
-        free(atual->titulo);
+    free(atual->minutos);
+    free(atual->titulo);
         free(atual);
     }
 }

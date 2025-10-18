@@ -8,7 +8,7 @@ void libera_albuns(NoRB* album){
     if(album){
         libera_albuns(album->esq);
         libera_albuns(album->dir);
-        free(album->dado.album.nome);
+        free(album->dado.album.titulo);
         libera_musicas(album->dado.album.musicas);
         free(album);
     }

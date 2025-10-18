@@ -3,6 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef _MSC_VER
+/* disponibiliza protótipos para strdup e strcasecmp em MinGW/GCC */
+char *strdup(const char *s);
+int strcasecmp(const char *s1, const char *s2);
+#endif
+
 #define MAX_NOME   50
 #define MAX_TITULO 50
 #define MAX_ESTILO 50
@@ -65,7 +71,7 @@ void copia_dados(void* recebe,void* envia,TipoNo tipo);
 void adiciona_info(NoRB** NO,void* info, NoRB* filho);
 int eh_folha(NoRB* NO);
 NoRB* quebrar_NO(NoRB** NO,void* info, NoRB* filho,void** sobe);
-NoRB* inserirNo(NoRB **raiz, void *dados, TipoNo tipo, NoRB* pai, void* sobe, int* flag);
+NoRB* inserirNo(NoRB **raiz, void *dados, TipoNo tipo, NoRB* pai, void** sobe, int* flag);
 void exibe_dados(dado dado,TipoNo tipo);
 void imprimirArvore(NoRB *raiz);
 dado* buscar_item(NoRB* raiz, char* nome);
@@ -86,3 +92,4 @@ void ler_dados_artista(DadosArtista* artista,char* nome,char* estilo);
 void ler_dados_album(DadosAlbum* album, char* nome, int* ano);
 int validar_estilo(const char* estilo);
 int validarFormatoduracao(const char* duracao);
+int seed(int num, NoRB **raiz);
