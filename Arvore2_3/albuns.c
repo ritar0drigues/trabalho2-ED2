@@ -11,8 +11,6 @@ int libera_albuns(NoRB* album){
             libera_albuns(album->dir);
             libera_albuns(album->meio);
         }
-        free(album->info1.album.nome);
-        free(album->info2.album.nome);
         libera_musicas(album->info1.album.musicas);
         libera_musicas(album->info2.album.musicas);
         free(album);

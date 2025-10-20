@@ -121,14 +121,14 @@ void menu_albuns(NoRB** raiz, dado* artista){
         switch (op)
         {
             case 1:{
-                    DadosAlbum album;
+                    dado info;
                     char nome[MAX_NOME];
                     int flag = 0;
                     int ano = 0;
-                    ler_dados_album(&album,nome,&ano);
+                    ler_dados_album(&info,nome,&ano);
                     if(ano>1800 && ano<=2025){
-                        void* sobe = NULL;
-                        inserirNo(raiz, &album, NO_ALBUM, NULL,&sobe,&flag);
+                        dado* sobe = NULL;
+                        inserirNo(raiz, &info, NO_ALBUM, NULL,&sobe,&flag);
                         if(flag){
                             artista->artista.qtd_albuns++;
                             printf("Album cadastrado com sucesso.\n");
@@ -137,8 +137,6 @@ void menu_albuns(NoRB** raiz, dado* artista){
                     else{
                         printf("Ano inválido.\n");
                     }
-                    // liberar memória temporária
-                    free(album.nome);
                 break;
             }
             case 2:{
@@ -211,7 +209,7 @@ void menu_albuns(NoRB** raiz, dado* artista){
 
 int main(){
     NoRB* raiz = NULL;
-    //seed(1000, &raiz);
+    seed(1000, &raiz);
     int op = 0;
     do{
         printf(" ___________________\n");
@@ -228,14 +226,18 @@ int main(){
         switch (op)
         {
         case 1:{
-            DadosArtista artista;
+            dado Info;
             char nome[MAX_NOME];
             char estilo[MAX_ESTILO];
             int flag = 0;
-            ler_dados_artista(&artista,nome,estilo);
+            ler_dados_artista(&Info,nome,estilo);
             if(validar_estilo(estilo)){
-                void* sobe = NULL;
-                inserirNo(&raiz, &artista, NO_ARTISTA, NULL,&sobe,&flag);
+                dado* sobe = malloc(sizeof(dado));
+                memset(sobe, 0, sizeof(dado));
+                inserirNo(&raiz, &Info, NO_ARTISTA, NULL, &sobe, &flag);
+                if(sobe->artista.nome==NULL){
+                    free(sobe);
+                }
                 if(flag){
                     printf("Artista cadastrado com sucesso.\n");
                 }
@@ -243,9 +245,6 @@ int main(){
             else{
                 printf("Estilo inválido.\n");
             }
-            // liberar memória temporária
-            free(artista.nome);
-            free(artista.estilo);
             break;
         }
         case 2:{

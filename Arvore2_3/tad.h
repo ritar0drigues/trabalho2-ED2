@@ -26,15 +26,15 @@ typedef struct Musica {
 
 
 typedef struct DadosAlbum{
-    char *nome;
+    char nome[50];
     int ano;
     int qtd_musicas;
     Musica *musicas;       // lista encadeada ordenada de músicas
 } DadosAlbum;
 
 typedef struct DadosArtista{
-    char *nome;
-    char *estilo;
+    char nome[50];
+    char estilo[50];
     int qtd_albuns;
     struct NoRB *albuns;  
 } DadosArtista;
@@ -54,7 +54,6 @@ typedef struct NoRB {
     dado info1;
     dado info2;
     int ninfos;
-    struct NoRB* pai;
     struct NoRB *esq;
     struct NoRB *dir;
     struct NoRB *meio;
@@ -66,12 +65,12 @@ typedef struct NoRB {
 // ---------------- Protótipos ---------------- 
 // Funções genéricas para árvore 2-3
 int libera_albuns(NoRB* album);
-NoRB* criar_no(void* dados,NoRB* FEsq, NoRB* FCen,TipoNo tipo,NoRB* pai);
-void copia_dados(void* recebe,void* envia,TipoNo tipo);
-void adiciona_info(NoRB** NO,void* info, NoRB* filho);
-int eh_folha(NoRB* NO);
-NoRB* quebrar_NO(NoRB** NO,void* info, NoRB* filho,void** sobe);
-NoRB* inserirNo(NoRB **raiz, void *dados, TipoNo tipo, NoRB* pai, void** sobe, int* flag);
+NoRB *criar_no(dado *dados, NoRB *FEsq, NoRB *FCen, TipoNo tipo);
+int eh_folha(NoRB *NO);
+void copia_dados(dado* recebe, dado* envia, TipoNo tipo);
+void adiciona_info(NoRB** NO, dado* info, NoRB* filho);
+NoRB* quebrar_NO(NoRB** NO, dado* info, NoRB* filho, dado** sobe);
+NoRB* inserirNo(NoRB **raiz, dado *dados, TipoNo tipo, NoRB* pai, dado** sobe, int* flag);
 void exibe_dados(dado dado,TipoNo tipo);
 void imprimirArvore(NoRB *raiz);
 dado* buscar_item(NoRB* raiz, char* nome);
@@ -88,8 +87,9 @@ void remove_musicas(Musica** lista,char *titulo,int* flag);
 char confirma_desejo_de_remover_artista(char* nome);
 char confirma_desejo_de_remover_album(char* nome);
 void deixa_string_minuscula(char *s);
-void ler_dados_artista(DadosArtista* artista,char* nome,char* estilo);
-void ler_dados_album(DadosAlbum* album, char* nome, int* ano);
+void ler_dados_artista(dado* artista,char* nome,char* estilo);
+void ler_dados_album(dado* album, char* nome, int* ano);
 int validar_estilo(const char* estilo);
 int validarFormatoduracao(const char* duracao);
 int seed(int num, NoRB **raiz);
+int cmp_keys(const char *a, const char *b);

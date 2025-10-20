@@ -3,103 +3,75 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* Compare two key strings. If both are pure integers, compare numerically.
-   Otherwise fall back to strcmp. Returns <0 if a<b, 0 if equal, >0 if a>b. */
-static int cmp_keys(const char *a, const char *b){
-    if(a==b) return 0;
-    if(!a) return -1;
-    if(!b) return 1;
-
-    char *end1, *end2;
-    long v1 = strtol(a, &end1, 10);
-    long v2 = strtol(b, &end2, 10);
-    if(*end1 == '\0' && *end2 == '\0'){
-        if(v1 < v2) return -1;
-        if(v1 > v2) return 1;
-        return 0;
+/* copia os campos relevantes de 'envia' para 'recebe' conforme o tipo */
+void copia_dados(dado *recebe, dado *envia, TipoNo tipo)
+{
+    if (recebe && envia){
+        if (tipo == NO_ARTISTA)
+        {
+            strncpy(recebe->artista.nome, envia->artista.nome, 49);
+            recebe->artista.nome[49] = '\0';
+            strncpy(recebe->artista.estilo, envia->artista.estilo, 49);
+            recebe->artista.estilo[49] = '\0';
+            recebe->artista.qtd_albuns = envia->artista.qtd_albuns;
+            recebe->artista.albuns = envia->artista.albuns;
+        }
+        else
+        {
+            strncpy(recebe->album.nome, envia->album.nome, 49);
+            recebe->album.nome[49] = '\0';
+            recebe->album.ano = envia->album.ano;
+            recebe->album.qtd_musicas = envia->album.qtd_musicas;
+            recebe->album.musicas = envia->album.musicas;
+        }
     }
-    return strcmp(a,b);
 }
 
-NoRB* criar_no(void* dados,NoRB* FEsq, NoRB* FCen,TipoNo tipo,NoRB* pai){
-    NoRB* novo = (NoRB*) malloc(sizeof(NoRB));
+/* cria um nó com cópia dos campos (não aloca strings dinamicamente) */
+NoRB *criar_no(dado *dados, NoRB *FEsq, NoRB *FCen, TipoNo tipo)
+{
+    NoRB *novo = (NoRB *)malloc(sizeof(NoRB));
     novo->tipo = tipo;
-    novo->pai = pai;
     novo->esq = FEsq;
     novo->meio = FCen;
     novo->dir = NULL;
     novo->ninfos = 1;
-    if(tipo== NO_ARTISTA){
-        DadosArtista* artista = (DadosArtista*) dados;
-        novo->info1.artista.nome = strdup(artista->nome);
-        novo->info1.artista.estilo = strdup(artista->estilo);
-        novo->info1.artista.qtd_albuns = artista->qtd_albuns;
-        novo->info1.artista.albuns = NULL;
-        /* inicializa info2 para evitar ponteiros não inicializados */
-        novo->info2.artista.nome = NULL;
-        novo->info2.artista.estilo = NULL;
-        novo->info2.artista.qtd_albuns = 0;
-        novo->info2.artista.albuns = NULL;
-    }
-    else{
-        DadosAlbum* album = (DadosAlbum*) dados;
-        novo->info1.album.nome = strdup(album->nome);
-        novo->info1.album.ano = album->ano;
-        novo->info1.album.qtd_musicas = album->qtd_musicas;
-        novo->info1.album.musicas = NULL;
-        /* inicializa info2 para evitar ponteiros não inicializados */
-        novo->info2.album.nome = NULL;
-        novo->info2.album.ano = 0;
-        novo->info2.album.qtd_musicas = 0;
-        novo->info2.album.musicas = NULL;
-    }
+
+    if (dados)
+        copia_dados(&novo->info1, dados, tipo);
+        if (tipo == NO_ARTISTA) {
+            novo->info2.artista.nome[0] = '\0';
+            novo->info2.artista.estilo[0] = '\0';
+            novo->info2.artista.qtd_albuns = 0;
+            novo->info2.artista.albuns = NULL;
+        }
+        else{
+            novo->info2.album.nome[0] = '\0';
+            novo->info2.album.ano = 0;
+            novo->info2.album.qtd_musicas = 0;
+            novo->info2.album.musicas = NULL;
+        }
+
     return novo;
 }
 
-void copia_dados(void* recebe,void* envia,TipoNo tipo){
-    if(recebe){
-        if(tipo==NO_ARTISTA){
-            DadosArtista* destino = (DadosArtista*) recebe;
-            DadosArtista* origem = (DadosArtista*) envia;
-            /* libera conteúdo antigo, se houver */
-            if(destino->nome) free(destino->nome);
-            if(destino->estilo) free(destino->estilo);
-            destino->nome = strdup(origem->nome);
-            destino->estilo = strdup(origem->estilo);
-            destino->qtd_albuns = origem->qtd_albuns;
-            destino->albuns = NULL;
-        }
-        else{
-            DadosAlbum* destino = (DadosAlbum*) recebe;
-            DadosAlbum* origem = (DadosAlbum*) envia;
-            if(destino->nome) free(destino->nome);
-            destino->nome = strdup(origem->nome);
-            destino->ano = origem->ano;
-            destino->qtd_musicas = origem->qtd_musicas;
-            destino->musicas = NULL;
-        }
-    }
+int eh_folha(NoRB *NO)
+{
+    return (NO->esq == NULL && NO->meio == NULL && NO->dir == NULL);
 }
 
-void adiciona_info(NoRB** NO,void* info, NoRB* filho){
-    char* nomeInfo;
-    if((*NO)->tipo==NO_ARTISTA){
-        DadosArtista* informa = (DadosArtista*)info;
-        if(informa)
-            nomeInfo = informa->nome;
-    }
-    else{
-        DadosAlbum* informa = (DadosAlbum*)info;
-        if(informa)
-            nomeInfo = informa->nome;
-        
-    }
-    char* nome1 = (((*NO)->tipo==NO_ARTISTA) ? (*NO)->info1.artista.nome : (*NO)->info1.album.nome);
-    if(cmp_keys(nomeInfo, nome1) > 0){
+/* adiciona 'info' em NO que tem 1 info (passando filho referente ao lado direito quando necessário) */
+void adiciona_info(NoRB **NO, dado *info, NoRB *filho)
+{
+    char *nomeInfo =  info->artista.nome;
+    char *nome1 = (*NO)->info1.artista.nome;
+    if (cmp_keys(nomeInfo, nome1) > 0)
+    {
         copia_dados(&(*NO)->info2, info, (*NO)->tipo);
         (*NO)->dir = filho;
     }
-    else {
+    else
+    {
         copia_dados(&(*NO)->info2, &(*NO)->info1, (*NO)->tipo);
         (*NO)->dir = (*NO)->meio;
         copia_dados(&(*NO)->info1, info, (*NO)->tipo);
@@ -108,162 +80,182 @@ void adiciona_info(NoRB** NO,void* info, NoRB* filho){
     (*NO)->ninfos = 2;
 }
 
-int eh_folha(NoRB* NO){
-    return (NO->esq==NULL);
-}
+/* quebra um nó com 2 infos inserindo 'info' (ou promovendo *sobe); retorna novo irmão direito (maior) e preenche *sobe com dado promovido.
+   filho é o ponteiro direito correspondente à info passada (pode ser NULL para folhas). */
+NoRB *quebrar_NO(NoRB **NO, dado *info, NoRB *filho, dado **sobe)
+{
+    NoRB *maior = NULL;
+    if ((*NO)){
 
-NoRB* quebrar_NO(NoRB** NO, void* info, NoRB* filho, void** sobe){
-    if(!NO || !(*NO) || !info) return NULL;
+        TipoNo tipo = (*NO)->tipo;
+        char *a_name = (*NO)->info1.artista.nome;
+        char *b_name =  (*NO)->info2.artista.nome;
+        char *nomeInfo = info->artista.nome;
 
-    TipoNo tipo = (*NO)->tipo;
-    char* nomeInfo = (tipo==NO_ARTISTA) ? ((DadosArtista*)info)->nome : ((DadosAlbum*)info)->nome;
-    NoRB* maior = NULL;
+        *sobe = (dado *)malloc(sizeof(dado));
+        if (cmp_keys(nomeInfo, b_name) > 0)
+        {
+            copia_dados(*sobe, &(*NO)->info2, tipo);
+            (*NO)->ninfos = 1;
+            maior = criar_no(info, (*NO)->dir, filho, tipo);            
+            (*NO)->dir = NULL;
+        }
+        else if (cmp_keys(nomeInfo, a_name) > 0)
+        {
+            copia_dados(*sobe, &(*NO)->info1, tipo);
+            maior = criar_no(&(*NO)->info2, filho, (*NO)->dir, tipo);
+            (*NO)->dir = NULL;
+            (*NO)->ninfos = 1;
+            
+        }
+        else
+        {
+            copia_dados(*sobe, &(*NO)->info1, tipo);
+            copia_dados(&(*NO)->info1, info, tipo);
+            (*NO)->ninfos = 1;
+            maior = criar_no(&(*NO)->info2, (*NO)->dir, (*NO)->dir, tipo);
+            (*NO)->meio = filho;
+            (*NO)->dir = NULL;
+            (*NO)->ninfos = 1;
+        }
 
-    /* allocate and zero the structure that will be promoted */
-    if (tipo == NO_ARTISTA)
-        *sobe = calloc(1, sizeof(DadosArtista));
-    else
-        *sobe = calloc(1, sizeof(DadosAlbum));
-
-    /* safe access to current keys */
-    char *a_name = (tipo==NO_ARTISTA) ? (*NO)->info1.artista.nome : (*NO)->info1.album.nome;
-    char *b_name = ((*NO)->ninfos==2) ? ((tipo==NO_ARTISTA) ? (*NO)->info2.artista.nome : (*NO)->info2.album.nome) : NULL;
-
-    /* Case 1: new key is less than a_name -> promote a_name */
-    if (a_name && cmp_keys(nomeInfo, a_name) < 0) {
-        copia_dados(*sobe, &(*NO)->info1, tipo);        /* sobe = a */
-        copia_dados(&(*NO)->info1, info, tipo);         /* info1 = new key */
-        maior = criar_no(&(*NO)->info2, (*NO)->meio, (*NO)->dir, tipo, *NO); /* right sibling keeps b */
-        (*NO)->ninfos = 1;
-        (*NO)->meio = filho;
-        (*NO)->dir = NULL;
     }
-    /* Case 2: new key is greater than b_name -> promote b_name */
-    else if (b_name && cmp_keys(nomeInfo, b_name) > 0) {
-        copia_dados(*sobe, &(*NO)->info2, tipo);        /* sobe = b */
-        maior = criar_no(info, filho, (*NO)->dir, tipo, *NO); /* right sibling gets new key */
-        (*NO)->dir = NULL;
-        (*NO)->ninfos = 1;
-    }
-    /* Case 3: new key is between a and b -> promote new key */
-    else {
-        copia_dados(*sobe, info, tipo);                 /* sobe = new key */
-        maior = criar_no(&(*NO)->info2, filho, (*NO)->dir, tipo, *NO); /* right sibling keeps b */
-        (*NO)->dir = NULL;
-        (*NO)->ninfos = 1;
-    }
-
     return maior;
 }
 
-NoRB* inserirNo(NoRB **raiz, void *dados, TipoNo tipo, NoRB* pai, void** sobe, int* flag){
-    NoRB* maior;
-    char* nomeInfo = (tipo==NO_ARTISTA) ? ((DadosArtista*)dados)->nome : ((DadosAlbum*)dados)->nome;
-    if(*raiz == NULL){
-        *raiz = criar_no(dados,NULL,NULL,tipo,pai);
-        *flag = 1;
+/* função de inserção recursiva: retorna irmão direito criado (maior) se o nó atual foi quebrado e precisa propagar, caso contrário retorna NULL.
+   Se um split sobe para uma raiz (pai == NULL), esta função transforma a raiz em novo nó contendo *sobe e filhos old + maior. */
+NoRB *inserirNo(NoRB **raiz, dado *dados, TipoNo tipo, NoRB *pai, dado **sobe, int *flag)
+{
+    NoRB *maior = NULL;
+    if (*raiz == NULL)
+    {
+        *raiz = criar_no(dados, NULL, NULL, tipo);
+        if (*raiz) *flag = 1;
     }
-    else {
-        if(eh_folha(*raiz)){
-            if((*raiz)->ninfos == 1){
-                adiciona_info(raiz,dados,NULL);
-            } else {
+    else{
+        if (eh_folha(*raiz))
+        {
+            if ((*raiz)->ninfos == 1)
+            {
+                adiciona_info(raiz, dados, NULL);
+                *flag = 1;
+            }
+            else
+            {
+                /* nó folha com 2 infos -> quebrar */
                 maior = quebrar_NO(raiz, dados, NULL, sobe);
-                if(pai == NULL){
-                    (*raiz) = criar_no(*sobe, (*raiz), maior, (*raiz)->tipo, pai);
-                    (*raiz)->esq->pai = *raiz;
-                    (*raiz)->meio->pai = *raiz;
+                /* se raiz (pai == NULL) e houve quebra, criar nova raiz aqui */
+                if (pai == NULL)
+                {
+                    *raiz = criar_no(*sobe, (*raiz), maior, (*raiz)->tipo);
                     maior = NULL;
                 }
+                *flag = 1;
             }
         }
-        else{
-            /* determine correct names based on node type */
-            char *r_info1 = ((*raiz)->tipo == NO_ARTISTA) ? (*raiz)->info1.artista.nome : (*raiz)->info1.album.nome;
-            char *r_info2 = (((*raiz)->ninfos == 2) && ((*raiz)->tipo == NO_ARTISTA)) ? (*raiz)->info2.artista.nome : (((*raiz)->ninfos == 2) ? (*raiz)->info2.album.nome : NULL);
-
-            if(r_info1 && cmp_keys(nomeInfo, r_info1) < 0){
-                maior = inserirNo(&(*raiz)->esq,dados,(*raiz)->tipo,(*raiz),sobe,flag);
+        else
+        {
+            /* decide em qual filho descer */
+            char *nomeInfo = (tipo == NO_ARTISTA) ? dados->artista.nome : dados->album.nome;
+            char *r_info1 = ( (*raiz)->tipo == NO_ARTISTA ) ? (*raiz)->info1.artista.nome : (*raiz)->info1.album.nome;
+            char *r_info2 = ( (*raiz)->ninfos == 2 ) ? ( ( (*raiz)->tipo == NO_ARTISTA ) ? (*raiz)->info2.artista.nome : (*raiz)->info2.album.nome ) : NULL;
+            if (cmp_keys(nomeInfo, r_info1) < 0)
+            {
+                maior = inserirNo(&(*raiz)->esq, dados, tipo, *raiz, sobe, flag);
             }
-            else {
-                if((*raiz)->ninfos == 1 || (r_info2 && cmp_keys(nomeInfo, r_info2) < 0)){
-                    maior = inserirNo(&(*raiz)->meio,dados,(*raiz)->tipo,(*raiz),sobe,flag);
+            else{
+                if ((*raiz)->ninfos == 1 || cmp_keys(nomeInfo, r_info2) < 0)
+                {
+                    maior = inserirNo(&(*raiz)->meio, dados, tipo, *raiz, sobe, flag);
                 }
-                else {
-                    maior = inserirNo(&(*raiz)->dir,dados,(*raiz)->tipo,(*raiz),sobe,flag);
+                else
+                {
+                    maior = inserirNo(&(*raiz)->dir, dados, tipo, *raiz, sobe, flag);
                 }
             }
-            if(maior!=NULL){
-                if((*raiz)->ninfos==1){
+            if (maior != NULL)
+            {
+                /* houve split no filho e *sobe contém a chave a ser inserida aqui */
+                if ((*raiz)->ninfos == 1)
+                {
                     adiciona_info(raiz, *sobe, maior);
                     maior = NULL;
                 }
-                else{
-                   maior = quebrar_NO(raiz, *sobe, maior, sobe);
-                    if(pai==NULL){
-                        (*raiz) = criar_no(*sobe, (*raiz), maior, (*raiz)->tipo, pai);
+                else
+                {
+                    /* este nó tem 2 infos -> quebrar com *sobe e maior */
+                    maior = quebrar_NO(raiz, *sobe, maior, sobe);
+                    /* se for raiz, promover criando nova raiz */
+                    if (pai == NULL)
+                    {
+                        *raiz = criar_no(*sobe, (*raiz), maior, (*raiz)->tipo);
                         maior = NULL;
                     }
                 }
             }
         }
-        *flag = 1;
     }
+    *flag = 1;
     return maior;
 }
 
-void exibe_dados(dado dado,TipoNo tipo){
-    if(tipo==NO_ARTISTA){
-       printf("NOME: %s\n",dado.artista.nome);
-       printf("ESTILO: %s\n",dado.artista.estilo);
-       printf("ALBUNS: %d\n",dado.artista.qtd_albuns);
+void exibe_dados(dado dado, TipoNo tipo)
+{
+    if (tipo == NO_ARTISTA)
+    {
+        printf("NOME: %s\n", dado.artista.nome);
+        printf("ESTILO: %s\n", dado.artista.estilo);
+        printf("ALBUNS: %d\n", dado.artista.qtd_albuns);
     }
-    else{
+    else
+    {
         printf("NOME: %s \n", dado.album.nome);
         printf("ANO: %d \n", dado.album.ano);
-        printf("MUSICAS: %d\n",dado.album.qtd_musicas);
+        printf("MUSICAS: %d\n", dado.album.qtd_musicas);
     }
 }
 
-void imprimirArvore(NoRB *raiz){
-    if(raiz){
+void imprimirArvore(NoRB *raiz)
+{
+    if (raiz)
+    {
         imprimirArvore(raiz->esq);
-        exibe_dados(raiz->info1,raiz->tipo);
+        exibe_dados(raiz->info1, raiz->tipo);
         imprimirArvore(raiz->meio);
-        if(raiz->ninfos==2){
-            exibe_dados(raiz->info2,raiz->tipo);
+        if (raiz->ninfos == 2)
+        {
+            exibe_dados(raiz->info2, raiz->tipo);
             imprimirArvore(raiz->dir);
         }
     }
 }
 
 dado* buscar_item(NoRB* raiz, char* nome) {
-    dado* resultado = NULL;
-    if (raiz) {
-        int cmp1 = strcmp(nome, raiz->info1.album.nome);
-        if (cmp1 < 0) {
-            resultado = buscar_item(raiz->esq, nome);
-        }
-        else if (cmp1 == 0) {
-            resultado = &raiz->info1;
-        }
-        else {
-            if (raiz->ninfos == 1) {
-                resultado = buscar_item(raiz->dir, nome);
-            } 
-            else {
-                int cmp2 = strcmp(nome, raiz->info2.album.nome);
-                if (cmp2 < 0) {
-                    resultado = buscar_item(raiz->meio, nome);
-                }
-                else if (cmp2 == 0) {
-                    resultado = &raiz->info2;
-                }
-                else {
-                    resultado = buscar_item(raiz->dir, nome);
-                }
-            }
-        }
+    if (!raiz || !nome) return NULL;
+
+    /* obtém chaves do nó conforme tipo */
+    char *k1 = (raiz->tipo == NO_ARTISTA) ? raiz->info1.artista.nome : raiz->info1.album.nome;
+    char *k2 = NULL;
+    if (raiz->ninfos == 2) {
+        k2 = (raiz->tipo == NO_ARTISTA) ? raiz->info2.artista.nome : raiz->info2.album.nome;
     }
-    return resultado;
+
+    /* verifica igualdade no próprio nó primeiro */
+    if (k1 && cmp_keys(nome, k1) == 0) return &raiz->info1;
+    if (k2 && cmp_keys(nome, k2) == 0) return &raiz->info2;
+
+    /* decide em qual ramo descer usando cmp_keys */
+    if (raiz->ninfos == 1) {
+        if (k1 && cmp_keys(nome, k1) < 0)
+            return buscar_item(raiz->esq, nome);
+        else
+            return buscar_item(raiz->meio, nome);
+    } else {
+        if (k1 && cmp_keys(nome, k1) < 0)
+            return buscar_item(raiz->esq, nome);
+        if (k2 && cmp_keys(nome, k2) < 0)
+            return buscar_item(raiz->meio, nome);
+        return buscar_item(raiz->dir, nome);
+    }
 }

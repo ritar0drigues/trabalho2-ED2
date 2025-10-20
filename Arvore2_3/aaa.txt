@@ -1,0 +1,1 @@
+gcc -o seed_2_3.exe seed_2_3.c FuncGenéricas2_3.c main2_3.c albuns.c Musicas2_3.c utils2_3.c -I. -std=c11

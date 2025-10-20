@@ -4,13 +4,12 @@
 #include <time.h>
 #include "tad.h"
 
-// Compilar: gcc -o seed_2_3.exe seed_2_3.c FuncGenéricas2_3.c main2_3.c album.c Musicas2_3.c utils2_3.c -I. -std=c11
 
 int seed(int num, NoRB **raiz){
 
     srand((unsigned) time(NULL));
 
-    void *sobe = NULL;
+    dado* sobe = NULL;
     int flag = 0;
 
     for(int i=0;i<num;i++){
@@ -20,13 +19,20 @@ int seed(int num, NoRB **raiz){
         snprintf(nome, sizeof(nome), "%dartista", rnd);
         snprintf(estilo, sizeof(estilo), "estilo%d", rand()%10);
 
-        DadosArtista artista;
-        artista.nome = strdup(nome); 
-        artista.estilo = strdup(estilo);
-        artista.qtd_albuns = 0;
-        artista.albuns = NULL;
+        dado info;
 
-    inserirNo(raiz, &artista, NO_ARTISTA, NULL, &sobe, &flag);
+        // copia as strings para os arrays, garantindo terminação
+        strncpy(info.artista.nome, nome, 49);
+        info.artista.nome[49] = '\0';
+
+        strncpy(info.artista.estilo, estilo, 49);
+        info.artista.estilo[49] = '\0';
+
+        info.artista.qtd_albuns = 0;
+        info.artista.albuns = NULL;
+
+
+        inserirNo(raiz, &info, NO_ARTISTA, NULL, &sobe, &flag);
     }
 
     printf("Inseridos %d artistas.\n", num);
