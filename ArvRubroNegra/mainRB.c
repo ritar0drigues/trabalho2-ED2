@@ -7,13 +7,14 @@ void menu_musicas(Musica** lista,NoRB* album){
      int op = 0;
     do{
         printf(" ___________________\n");
-        printf("|MENU               |\n");
+        printf("|       MENU        |\n");
         printf("|1-Cadastrar Música |\n");
         printf("|2-Listar musicas   |\n");
         printf("|3-Buscar musicas   |\n");
         printf("|4-Remover musicas  |\n");
         printf("|5-Sair             |\n");
         printf("|___________________|\n");
+        printf("Informe a opção desejada: \n");
         scanf("%d", &op);
         getchar();
         switch (op)
@@ -108,7 +109,7 @@ void menu_albuns(NoRB** raiz,NoRB* artista){
     int op = 0;
     do{
         printf(" ___________________\n");
-        printf("|MENU               |\n");
+        printf("|       MENU        |\n");
         printf("|1-Cadastrar Album  |\n");
         printf("|2-Listar Albuns    |\n");
         printf("|3-Buscar           |\n");
@@ -116,6 +117,7 @@ void menu_albuns(NoRB** raiz,NoRB* artista){
         printf("|5-Editar album     |\n");
         printf("|6-Sair             |\n");
         printf("|___________________|\n");
+        printf("Digite a opção desejada: \n");
         scanf("%d", &op);
         getchar();
         switch (op)
@@ -215,7 +217,7 @@ int main(){
     int op = 0;
     do{
         printf(" ___________________\n");
-        printf("|MENU               |\n");
+        printf("|        MENU       |\n");
         printf("|1-Cadastrar Artista|\n");
         printf("|2-Listar Artistas  |\n");
         printf("|3-Buscar           |\n");
@@ -223,6 +225,7 @@ int main(){
         printf("|5-editar albuns    |\n");
         printf("|6-Sair             |\n");
         printf("|___________________|\n");
+        printf("Digite a opção desejada: \n");
         scanf("%d", &op);
         getchar();
         switch (op)

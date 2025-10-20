@@ -72,12 +72,14 @@ void troca_cor(NoRB* no) {
 }
 
 
-int cor(NoRB* no){
-    return no ? no->cor : PRETO;
+int cor(NoRB* no) {
+    int cor_no = PRETO;
+    if (no) cor_no = no->cor;
+    return cor_no;
 }
 
 // Balanceamento utilizado após inserção
-void balancearInsercao(NoRB** no){
+void balancearRubroNegra(NoRB** no){
     if(*no){
         if(!eh_folha(*no)){
             if(cor((*no)->dir) == VERMELHO && cor((*no)->esq) == PRETO){
@@ -96,11 +98,6 @@ void balancearInsercao(NoRB** no){
 }
 
 // Função exposta (prototipada em tad.h) — chama o balanceamento de inserção
-void balancearRubroNegra(NoRB** no){
-    balancearInsercao(no);
-}
-
-// Balanceamento utilizado após remoção
 void balancearremocao(NoRB** no){
     if(*no){
         if(!eh_folha(*no)){
