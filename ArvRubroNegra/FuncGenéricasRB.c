@@ -65,12 +65,16 @@ int eh_folha(NoRB* NO){
 
 // Inverte cores dos filhos e do nó atual (usado no balanceamento)
 void troca_cor(NoRB* no) {
-    if (!no) return;
-    if (no->esq) no->esq->cor = PRETO;
-    if (no->dir) no->dir->cor = PRETO;
-    no->cor = (no->cor == PRETO) ? VERMELHO : PRETO;
+       if (no) {
+        if (no->esq) no->esq->cor = PRETO;
+        if (no->dir) no->dir->cor = PRETO;
+        
+        if (no->cor == PRETO)
+            no->cor = VERMELHO;
+        else
+            no->cor = PRETO;
+    }
 }
-
 
 int cor(NoRB* no) {
     int cor_no = PRETO;
