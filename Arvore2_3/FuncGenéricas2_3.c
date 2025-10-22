@@ -156,11 +156,39 @@ NoRB *inserirNo(NoRB **raiz, dado *dados, TipoNo tipo, NoRB *pai, dado **sobe, i
         }
         else
         {
-            /* decide em qual filho descer */
-            char *nomeInfo = (tipo == NO_ARTISTA) ? dados->artista.nome : dados->album.nome;
-            char *r_info1 = ( (*raiz)->tipo == NO_ARTISTA ) ? (*raiz)->info1.artista.nome : (*raiz)->info1.album.nome;
-            char *r_info2 = ( (*raiz)->ninfos == 2 ) ? ( ( (*raiz)->tipo == NO_ARTISTA ) ? (*raiz)->info2.artista.nome : (*raiz)->info2.album.nome ) : NULL;
-            if (cmp_keys(nomeInfo, r_info1) < 0)
+           char *nomeInfo;
+        if (tipo == NO_ARTISTA)
+        {
+            nomeInfo = dados->artista.nome;
+        }
+        else
+        {
+            nomeInfo = dados->album.nome;
+        }
+
+        char *r_info1;
+        if ((*raiz)->tipo == NO_ARTISTA)
+        {
+            r_info1 = (*raiz)->info1.artista.nome;
+        }
+        else
+        {
+            r_info1 = (*raiz)->info1.album.nome;
+        }
+
+        char *r_info2 = NULL;
+        if ((*raiz)->ninfos == 2)
+        {
+            if ((*raiz)->tipo == NO_ARTISTA)
+            {
+                r_info2 = (*raiz)->info2.artista.nome;
+            }
+            else
+            {
+                r_info2 = (*raiz)->info2.album.nome;
+            }
+        }
+                if (cmp_keys(nomeInfo, r_info1) < 0)
             {
                 maior = inserirNo(&(*raiz)->esq, dados, tipo, *raiz, sobe, flag);
             }

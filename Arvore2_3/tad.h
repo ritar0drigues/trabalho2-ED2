@@ -13,8 +13,6 @@ int strcasecmp(const char *s1, const char *s2);
 #define MAX_TITULO 50
 #define MAX_ESTILO 50
 
-#define VERMELHO 0
-#define PRETO    1
 
 /* Lista encadeada de músicas */
 typedef struct Musica {
