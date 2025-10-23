@@ -72,6 +72,9 @@ NoRB* inserirNo(NoRB **raiz, dado *dados, TipoNo tipo, NoRB* pai, dado** sobe, i
 void exibe_dados(dado dado,TipoNo tipo);
 void imprimirArvore(NoRB *raiz);
 dado* buscar_item(NoRB* raiz, char* nome);
+int remover_no(NoRB **raiz, char *chave, TipoNo tipo);
+int remover_artista(NoRB **raiz, char *nome, int *flag);
+int remover_album(NoRB **albuns, char *nome, int *flag);
 
 //Musicas.c
 void libera_musicas(Musica* lista);
