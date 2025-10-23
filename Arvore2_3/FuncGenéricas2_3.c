@@ -153,42 +153,35 @@ NoRB *inserirNo(NoRB **raiz, dado *dados, TipoNo tipo, NoRB *pai, dado **sobe, i
                 }
                 *flag = 1;
             }
-        }
-        else
-        {
+        }else {
            char *nomeInfo;
-        if (tipo == NO_ARTISTA)
-        {
-            nomeInfo = dados->artista.nome;
-        }
-        else
-        {
-            nomeInfo = dados->album.nome;
-        }
+            if (tipo == NO_ARTISTA)
+            {
+                nomeInfo = dados->artista.nome;
+            } else {
+                nomeInfo = dados->album.nome;
+           }
 
-        char *r_info1;
-        if ((*raiz)->tipo == NO_ARTISTA)
-        {
-            r_info1 = (*raiz)->info1.artista.nome;
-        }
-        else
-        {
-            r_info1 = (*raiz)->info1.album.nome;
-        }
-
-        char *r_info2 = NULL;
-        if ((*raiz)->ninfos == 2)
-        {
+            char *r_info1;
             if ((*raiz)->tipo == NO_ARTISTA)
             {
-                r_info2 = (*raiz)->info2.artista.nome;
+                r_info1 = (*raiz)->info1.artista.nome;
+            } else {
+                r_info1 = (*raiz)->info1.album.nome;
             }
-            else
-            {
-                r_info2 = (*raiz)->info2.album.nome;
+
+            char *r_info2 = NULL;
+            if ((*raiz)->ninfos == 2) {
+                if ((*raiz)->tipo == NO_ARTISTA)
+                {
+                    r_info2 = (*raiz)->info2.artista.nome;
+                }
+                else
+                {
+                    r_info2 = (*raiz)->info2.album.nome;
+                }
             }
-        }
-                if (cmp_keys(nomeInfo, r_info1) < 0)
+            if (cmp_keys(nomeInfo, r_info1) < 0)
             {
                 maior = inserirNo(&(*raiz)->esq, dados, tipo, *raiz, sobe, flag);
             }
@@ -260,30 +253,65 @@ void imprimirArvore(NoRB *raiz)
 }
 
 dado* buscar_item(NoRB* raiz, char* nome) {
-    if (!raiz || !nome) return NULL;
+    dado *resultado = NULL;
+    if (raiz && nome){
 
-    /* obtém chaves do nó conforme tipo */
-    char *k1 = (raiz->tipo == NO_ARTISTA) ? raiz->info1.artista.nome : raiz->info1.album.nome;
-    char *k2 = NULL;
-    if (raiz->ninfos == 2) {
-        k2 = (raiz->tipo == NO_ARTISTA) ? raiz->info2.artista.nome : raiz->info2.album.nome;
-    }
+        /* obtém chaves do nó conforme tipo */
+        char *k1;
+        if(raiz->tipo == NO_ARTISTA){
+            k1 = raiz->info1.artista.nome;
+        } else {
+            k1 = raiz->info1.album.nome;
+        }
 
-    /* verifica igualdade no próprio nó primeiro */
-    if (k1 && cmp_keys(nome, k1) == 0) return &raiz->info1;
-    if (k2 && cmp_keys(nome, k2) == 0) return &raiz->info2;
-
-    /* decide em qual ramo descer usando cmp_keys */
-    if (raiz->ninfos == 1) {
-        if (k1 && cmp_keys(nome, k1) < 0)
-            return buscar_item(raiz->esq, nome);
+        char *k2 = NULL;
+        if (raiz->ninfos == 2) {
+            if(raiz->tipo == NO_ARTISTA){
+                k2 = raiz->info2.artista.nome;
+            } else {
+                k2 = raiz->info2.album.nome;
+            }
+        }
+ /* verifica igualdade no próprio nó primeiro */
+        if (k1 && cmp_keys(nome, k1) == 0)
+        {
+            resultado = &raiz->info1;
+        }
+        else if (k2 && cmp_keys(nome, k2) == 0)
+        {
+            resultado = &raiz->info2;
+        }
         else
-            return buscar_item(raiz->meio, nome);
-    } else {
-        if (k1 && cmp_keys(nome, k1) < 0)
-            return buscar_item(raiz->esq, nome);
-        if (k2 && cmp_keys(nome, k2) < 0)
-            return buscar_item(raiz->meio, nome);
-        return buscar_item(raiz->dir, nome);
+        {
+            /* decide em qual ramo descer usando cmp_keys */
+            if (raiz->ninfos == 1)
+            {
+                if (k1 && cmp_keys(nome, k1) < 0)
+                {
+                    resultado = buscar_item(raiz->esq, nome);
+                }
+                else
+                {
+                    resultado = buscar_item(raiz->meio, nome);
+                }
+            }
+            else
+            {
+                if (k1 && cmp_keys(nome, k1) < 0)
+                {
+                    resultado = buscar_item(raiz->esq, nome);
+                }
+                else if (k2 && cmp_keys(nome, k2) < 0)
+                {
+                    resultado = buscar_item(raiz->meio, nome);
+                }
+                else
+                {
+                    resultado = buscar_item(raiz->dir, nome);
+                }
+            }
+        }
     }
+
+    return resultado;
 }
