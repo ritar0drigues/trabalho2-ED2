@@ -67,14 +67,15 @@ typedef struct NoRB {
 int libera_albuns(NoRB* album);
 NoRB *criar_no(dado *dados, NoRB *FEsq, NoRB *FCen, TipoNo tipo);
 int eh_folha(NoRB *NO);
-void copia_dados(dado* recebe, dado* envia, TipoNo tipo);
+void copia_dados(dado* recebe, dado envia, TipoNo tipo);
 void adiciona_info(NoRB** NO, dado* info, NoRB* filho);
 NoRB* quebrar_NO(NoRB** NO, dado* info, NoRB* filho, dado** sobe);
 NoRB* inserirNo(NoRB **raiz, dado *dados, TipoNo tipo, NoRB* pai, dado** sobe, int* flag);
 void exibe_dados(dado dado,TipoNo tipo);
-void imprimirArvore(NoRB *raiz);
+void imprimirArvore(NoRB *raiz,int*cont);
 dado* buscar_item(NoRB* raiz, char* nome);
-
+int cont_filhos(NoRB* raiz, int* cont);
+void remove_no(NoRB** raiz,char* nome,NoRB* pai,int* flag);
 //Musicas.c
 void libera_musicas(Musica* lista);
 Musica* criar_musica(char* titulo,char* minutos);

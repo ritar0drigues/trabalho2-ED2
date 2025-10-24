@@ -95,11 +95,6 @@ void balancearInsercao(NoRB** no){
     }
 }
 
-// Função exposta (prototipada em tad.h) — chama o balanceamento de inserção
-void balancearRubroNegra(NoRB** no){
-    balancearInsercao(no);
-}
-
 // Balanceamento utilizado após remoção
 void balancearremocao(NoRB** no){
     if(*no){
@@ -139,7 +134,7 @@ void inserirNo(NoRB **raiz, void *dado, TipoNo tipo, NoRB* pai){
         else{
             printf("Elemento já cadastrado.\n");
         }
-        balancearRubroNegra(raiz);
+        balancearInsercao(raiz);
     }
     else{
         NoRB *novo = criarNo(dado, tipo, pai);
