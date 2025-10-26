@@ -72,7 +72,7 @@ void adiciona_info(NoRB** NO, dado* info, NoRB* filho);
 NoRB* quebrar_NO(NoRB** NO, dado* info, NoRB* filho, dado** sobe);
 NoRB* inserirNo(NoRB **raiz, dado *dados, TipoNo tipo, NoRB* pai, dado** sobe, int* flag);
 void exibe_dados(dado dado,TipoNo tipo);
-void imprimirArvore(NoRB *raiz,int*cont);
+void imprimirArvore(NoRB *raiz);
 dado* buscar_item(NoRB* raiz, char* nome);
 int cont_filhos(NoRB* raiz, int* cont);
 void remove_no(NoRB** raiz,char* nome,NoRB* pai,int* flag);

@@ -39,8 +39,7 @@ int seed(int num,NoRB **raiz) {
     }
 
     printf("Inseridos %d artistas.\n", num);
-    int cont = 0;
-    imprimirArvore(*raiz,&cont);
+    imprimirArvore(*raiz);
 
     return 0;
 }

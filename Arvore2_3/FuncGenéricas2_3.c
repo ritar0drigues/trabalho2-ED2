@@ -9,8 +9,7 @@
 
 // compara strings que começam com números numericamente
 int compare_numeric_prefix(const char *a, const char *b) {
-    int num_a = 0, num_b = 0;
-    
+    int num_a = 0, num_b = 0; 
     // lê o número do começo da string
     while (isdigit(*a)) {
         num_a = num_a * 10 + (*a - '0');
@@ -217,18 +216,14 @@ void exibe_dados(dado dado, TipoNo tipo){
     }
 }
 
-void imprimirArvore(NoRB *raiz,int*cont){
+void imprimirArvore(NoRB *raiz){
     if (raiz){
-        imprimirArvore(raiz->esq,cont);
+        imprimirArvore(raiz->esq);
         exibe_dados(raiz->info1, raiz->tipo);
-        (*cont)++;
-        printf("%d ",*cont);
-        imprimirArvore(raiz->meio,cont);
+        imprimirArvore(raiz->meio);
         if (raiz->ninfos == 2){
             exibe_dados(raiz->info2, raiz->tipo);
-            (*cont)++;
-            printf("%d ",*cont);
-            imprimirArvore(raiz->dir,cont);
+            imprimirArvore(raiz->dir);
         }
     }
 }
@@ -265,15 +260,13 @@ dado* buscar_item(NoRB* raiz, char* nome) {
 }
 
 void cont_infos(NoRB* raiz, int* cont){
-    if(*cont<=3){
-        if (raiz){
+    if (raiz){
+        (*cont)++;
+        cont_infos(raiz->esq, cont);
+        cont_infos(raiz->meio, cont);
+        if(raiz->ninfos==2){
             (*cont)++;
-            cont_infos(raiz->esq, cont);
-            cont_infos(raiz->meio, cont);
-            if(raiz->ninfos==2){
-                (*cont)++;
-                cont_infos(raiz->dir, cont);
-            }
+            cont_infos(raiz->dir, cont);
         }
     }
 }
@@ -310,306 +303,256 @@ dado* maior_info(NoRB* raiz) {
 
 void remove_info1_da_folha(NoRB** raiz, NoRB* pai, int n_da_info){
     if(*raiz){
-        if(n_da_info==1){
-            if((*raiz)->ninfos == 2){
-                    /* desliza info2 para info1 */
+        if(pai){
+            int infos = 0;
+            cont_infos(pai,&infos);
+            if (pai->esq == *raiz) {
+                if((*raiz)->ninfos==2){
                     copia_dados(&(*raiz)->info1, (*raiz)->info2, (*raiz)->tipo);
-                    (*raiz)->ninfos = 1;
+                    (*raiz)->ninfos=1;
                 }
-                else{
-                    if(pai->esq == *raiz){
-                        int num_infos = 0;
-                        cont_infos(pai,&num_infos);
-                        if(num_infos<=3){
-                            copia_dados(&pai->info2,pai->meio->info1,(*raiz)->tipo);
-                            free(pai->meio);
-                            free(pai->esq);
-                            pai->meio = NULL;
-                            pai->esq = NULL;
+                else if(infos>3){
+                        if(pai->meio->ninfos==2){
+                            copia_dados(&pai->esq->info1,pai->info1,pai->tipo);
+                            copia_dados(&pai->info1,pai->meio->info1,pai->tipo);
+                            copia_dados(&pai->meio->info1,pai->meio->info2,pai->tipo);
+                            pai->meio->ninfos=1;
                         }
-                        else{
-                            copia_dados(&(*raiz)->info1, pai->info1, (*raiz)->tipo);
-                            copia_dados(&pai->info1, pai->meio->info1, (*raiz)->tipo);
-                            if(pai->meio->ninfos==2){
-                                copia_dados(&pai->meio->info1,pai->meio->info2,(*raiz)->tipo);
-                                pai->meio->ninfos=1;
+                        else if(pai->ninfos==2){
+                            copia_dados(&pai->esq->info1,pai->info1,pai->tipo);
+                            copia_dados(&pai->info1,pai->meio->info1,pai->tipo);
+                            copia_dados(&pai->meio->info1,pai->info2,pai->tipo);
+                            if(pai->dir->ninfos==2){
+                                copia_dados(&pai->info2,pai->dir->info1,pai->tipo);
+                                copia_dados(&pai->dir->info1,pai->dir->info2,pai->tipo);
+                                pai->dir->ninfos=1;
                             }
                             else{
-                                copia_dados(&pai->meio->info1,pai->info2,(*raiz)->tipo);
-                                copia_dados(&pai->info2,pai->dir->info1,(*raiz)->tipo);
-                                if(pai->dir->ninfos==1){
-                                    free(pai->dir);
-                                    copia_dados(&pai->info2,pai->meio->info2,(*raiz)->tipo);
-                                    pai->dir->ninfos=1;
-                                }
-                                else{
-                                    copia_dados(&pai->dir->info1,pai->dir->info2,(*raiz)->tipo);
-                                    pai->dir->ninfos=1;
-                                }
+                                copia_dados(&pai->meio->info2,pai->dir->info1,pai->tipo);
+                                pai->ninfos = 1;
+                                pai->meio->ninfos = 2;
                             }
                         }
-                    }
-                    else if(pai->meio == *raiz){
-                        if(pai->ninfos==2){
-                            copia_dados(&(*raiz)->info1,pai->info2,(*raiz)->tipo);
-                            pai->meio->ninfos=1;
-                            if(pai->dir){
-                                if(pai->dir->ninfos==2){
-                                    copia_dados(&pai->info2,pai->dir->info1,(*raiz)->tipo);
-                                    copia_dados(&pai->dir->info1,pai->dir->info2,(*raiz)->tipo);
-                                    pai->dir->ninfos=1;
-                                }
-                                else{
-                                    copia_dados(&(*raiz)->info2,pai->dir->info1,(*raiz)->tipo);
-                                    free(pai->dir);
-                                    pai->dir=NULL;
-                                    pai->ninfos=1;
-                                }
-                            }
-                        }
-                    }
-                    else if(pai->dir == *raiz){
-                        if(pai->meio->ninfos==1){
-                            copia_dados(&pai->meio->info2,pai->info2,(*raiz)->tipo);
-                            free(pai->dir);
-                            pai->dir=NULL;
-                            pai->ninfos=1;
+                }
+                else{
+                    copia_dados(&pai->esq->info1, pai->info1, pai->tipo);
+                    copia_dados(&pai->esq->info2, pai->meio->info1, pai->tipo);
+                    pai->esq->ninfos = 2;
+                    free(pai->meio);
+                    pai->meio = NULL;
+                    pai->ninfos = 0;
+                }
+            }
+            else if(pai->meio == *raiz){
+                if((*raiz)->ninfos==2){
+                    copia_dados(&pai->dir->info1, (*raiz)->info2, pai->tipo);
+                    (*raiz)->ninfos=1;
+                }
+                else if(infos>3){
+                        if(pai->ninfos==1){
+                            copia_dados(&pai->meio->info1,pai->info1,pai->tipo);
+                            copia_dados(&pai->info1,pai->esq->info2,pai->tipo);
+                            pai->esq->ninfos=0;
                         }
                         else{
-                            copia_dados(&pai->dir->info1,pai->info2,(*raiz)->tipo);
-                            copia_dados(&pai->info2,pai->meio->info2,(*raiz)->tipo);
-                            pai->meio->ninfos=1;
+                            copia_dados(&(*raiz)->info1,pai->info2,pai->tipo);
+                            copia_dados(&(pai->info2),pai->dir->info1,pai->tipo);
+                            if(pai->dir->ninfos==1){
+                                free(pai->dir);
+                                copia_dados(&(*raiz)->info2,pai->info2,pai->tipo);
+                                pai->ninfos = 1;
+                            }
+                            else{
+                                copia_dados(&pai->dir->info1,pai->dir->info2,pai->tipo);
+                            }
                         }
+                }
+                else{
+                    copia_dados(&pai->esq->info2, pai->info1, pai->tipo);
+                    pai->esq->ninfos=2;
+                    free(pai->meio);
+                    pai->meio=NULL;
+                    pai->ninfos=0;
+                }
+            }
+            else if(pai->dir == *raiz){
+                if((*raiz)->ninfos==2){
+                    copia_dados(&pai->dir->info1, (*raiz)->info2, pai->tipo);
+                    (*raiz)->ninfos=1;
+                }
+                else{
+                    if(pai->meio->ninfos==1){
+                        copia_dados(&pai->meio->info2,pai->info2,pai->tipo);
+                        pai->ninfos = 1;
+                        pai->meio->ninfos = 2;
+                        free(pai->dir);
                     }
-                    free(*raiz);
-                    *raiz = NULL;
+                    else{
+                        copia_dados(&(*raiz)->info1,pai->info2,pai->tipo);
+                        copia_dados(&pai->info2,pai->meio->info2,pai->tipo);
+                        pai->meio->ninfos = 1;
+                    }
                 }
             }
         }
-        else if(n_da_info==2){
+        else{
+            // Removendo da raiz
             if((*raiz)->ninfos==2){
+                copia_dados(&(*raiz)->info1,(*raiz)->info2,(*raiz)->tipo);
                 (*raiz)->ninfos=1;
             }
+            else{
+                free(*raiz);
+                *raiz=NULL;
+            }
         }
+    }
 }
 
-/* encontra o nó e seu pai contendo o maior elemento da subárvore 'raiz' */
-static NoRB *find_max_node_with_parent(NoRB *raiz, NoRB **out_parent) {
-    NoRB *parent = NULL;
-    NoRB *cur = raiz;
-    if (!cur) {
-        if (out_parent) *out_parent = NULL;
-        return NULL;
-    }
-    while (cur->dir) {
-        parent = cur;
-        cur = cur->dir;
-    }
-    if (out_parent) *out_parent = parent;
-    return cur;
-}
-/* ajusta apenas o nó 'pai' quando o filho na posição pos (0=esq,1=meio,2=dir) ficou com 0 infos.
-   Esta rotina NÃO tenta resolver underflow do próprio pai; apenas rearranja valores/filhos localmente
-   conforme a especificação fornecida. */
+
 static void fix_parent_after_child_underflow(NoRB *pai, int pos) {
     if (pai){
-        NoRB *left = pai->esq;
-        NoRB *mid  = pai->meio;
-        NoRB *right = pai->dir;
-
-        /* helper para puxar menor da subárvore (usado abaixo) */
-        dado *menor_right = NULL;
-        if (right) menor_right = menor_info(right);
-
         if (pos == 0) {
-            /* underflow no filho esquerdo */
-            if (pai->ninfos == 1) {
-                /* pai tem 1 info: descer info1 do pai para a esquerda e juntar esquerda+meio */
-                if (!left) {
-                    /* criar left se faltante */
-                    left = mid;
-                    pai->esq = left;
+            if(pai->esq->esq->ninfos==1 && pai->ninfos==1 && pai->meio->ninfos==1){
+                    copia_dados(&pai->meio->info2, pai->meio->info1, pai->meio->tipo);
+                    copia_dados(&pai->meio->info1, pai->esq->esq->info1, pai->meio->tipo);
+                    pai->meio->dir = pai->meio->meio;
+                    pai->meio->meio = pai->meio->esq;
+                    pai->meio->esq = pai->esq->esq;
+                    pai->ninfos = 0;
+                    pai->esq = pai->meio;
                     pai->meio = NULL;
+                    return;
                 }
-                if (left) {
-                    copia_dados(&left->info1, pai->info1, pai->tipo);
-                    if (mid) {
-                        /* se meio tem 2 infos, usar meio->info1 para preencher pai->info1 posteriormente;
-                        caso meio tenha 1 info, após juntar left e meio o pai ficará sem infos (ninfos=0) */
-                        if (mid->ninfos == 2) {
-                            /* mover meio->info1 para left->info2, ajustar meio */
-                            copia_dados(&left->info2, mid->info1, pai->tipo);
-                            left->ninfos = 2;
-                            /* promover meio->info2 para pai->info1 */
-                            copia_dados(&pai->info1, mid->info2, pai->tipo);
-                            mid->ninfos = 1;
-                        } else {
-                            /* meio tem 1 info: left absorve meio -> left terá 2 infos, pai perde sua única info */
-                            copia_dados(&left->info2, mid->info1, pai->tipo);
-                            left->ninfos = 2;
-                            /* remover meio e ajustar ponteiros */
-                            free(mid);
-                            pai->meio = pai->dir;
-                            pai->dir = NULL;
-                            pai->ninfos = 0; /* pai perdeu sua única info */
-                        }
-                    } else {
-                        /* não há meio: apenas mover info1 para left */
-                        left->ninfos = 1;
-                        pai->ninfos = 0;
-                    }
-                }
-            } else {
-                /* pai tem 2 infos: desce info1 para left, move info2->info1 e recolhe um menor da dir para info2,
-                depois junta left e meio (mantendo ordem) */
-                if (!left) left = pai->esq; /* safety */
-                if (left) {
-                    copia_dados(&left->info1, pai->info1, pai->tipo);
-                    /* shift parent infos */
-                    copia_dados(&pai->info1, pai->info2, pai->tipo);
-                /* preencher info2 com menor da direita, se existir */
-                    if (menor_right) {
-                        copia_dados(&pai->info2, *menor_right, pai->tipo);
-                    } else {
-                        /* se não houver right, tentar preencher com meio->info1 se disponível */
-                        if (mid && mid->ninfos >= 1) {
-                            copia_dados(&pai->info2, mid->info1, pai->tipo);
-                            /* quando usamos mid->info1, mid precisa ser ajustado abaixo */
-                        }
-                    }
-
-                    /* agora juntar left + mid: colocar em left a ordem (left.info1, possivelmente left.info2, mid.info1) */
-                    if (mid) {
-                        if (mid->ninfos == 2) {
-                            /* left.info2 = mid.info1, left.ninfos = 2; mid shift */
-                            copia_dados(&left->info2, mid->info1, pai->tipo);
-                            left->ninfos = 2;
-                            /* ajustar mid: promover mid.info2 para mid.info1 */
-                            copia_dados(&mid->info1, mid->info2, pai->tipo);
-                            mid->ninfos = 1;
-                        } else {
-                            /* mid has 1 info: left absorbs it -> left.ninfos = 2; remove mid pointer */
-                            copia_dados(&left->info2, mid->info1, pai->tipo);
-                            left->ninfos = 2;
-                            free(mid);
-                            /* shift pointers: meio becomes dir, dir becomes NULL */
-                            pai->meio = pai->dir;
-                            pai->dir = NULL;
-                            /* pai still has 2 infos but we've adjusted children */
-                        }
-                    }
-                }
-            }
-        } else if (pos == 1) {
-            /* underflow no filho do meio */
-            if (pai->ninfos == 1) {
-                /* pai possui uma info: descer info1 para meio e juntar meio com esquerda */
-                if (!mid) {
-                    mid = pai->meio;
+                if(pai->esq->esq->ninfos==2 && pai->ninfos==1 && pai->meio->ninfos==1){
+                    copia_dados(&pai->meio->info2, pai->meio->info1, pai->meio->tipo);
+                    copia_dados(&pai->meio->info1, pai->info1, pai->meio->tipo);
+                    pai->meio->dir = pai->meio->meio;
+                    pai->meio->meio = pai->meio->esq;
+                    pai->meio->esq = pai->esq->esq;
+                    pai->ninfos = 0;
+                    free(pai->esq);
+                    pai->esq = pai->meio;
+                    pai->esq->ninfos = 2;
                     pai->meio = NULL;
+                    return;
                 }
-                if (mid) {
-                    copia_dados(&mid->info1, pai->info1, pai->tipo);
-                    if (left && left->ninfos >= 1) {
-                        /* left->info2 passa para mid->info2 e left perde info2 (ou é liberado) */
-                        if (left->ninfos == 2) {
-                            copia_dados(&mid->info2, left->info2, pai->tipo);
-                            mid->ninfos = 2;
-                            left->ninfos = 1;
-                        } else {
-                            /* left has 1 info: mid absorbs left -> mid.ninfos=2; remove left */
-                            copia_dados(&mid->info2, left->info1, pai->tipo);
-                            mid->ninfos = 2;
-                            free(left);
-                            pai->esq = NULL;
-                            pai->meio = mid;
-                            pai->ninfos = 0; /* pai lost its only info */
-                        }
-                    }
+                if(pai->esq->esq->ninfos==2 && pai->ninfos==2 && pai->meio->ninfos==1){
+                    copia_dados(&pai->meio->info2, pai->meio->info1, pai->meio->tipo);
+                    copia_dados(&pai->meio->info1, pai->info1, pai->meio->tipo);
+                    pai->meio->dir = pai->meio->meio;
+                    pai->meio->meio = pai->meio->esq;
+                    pai->meio->esq = pai->esq->esq;
+                    copia_dados(&pai->info1, pai->info2,pai->meio->tipo);
+                    free(pai->esq);
+                    pai->esq = pai->meio;
+                    pai->meio = pai->dir;
+                    pai->dir = NULL;
+                    pai->ninfos = 1;
+                    pai->esq->ninfos = 2;
+                    return;
                 }
-            } else {
-                /* pai tem 2 infos: descer info1 do pai para info2 do meio, e juntar meio com esquerdo */
-                if (mid) {
-                    copia_dados(&mid->info2, pai->info1, pai->tipo);
-                    mid->ninfos = 2;
-                    /* now shift parent: parent.info1 becomes parent.info2 */
-                    copia_dados(&pai->info1, pai->info2, pai->tipo);
-                    /* and try to fill parent.info2 from right subtree */
-                    if (right && right->ninfos >= 1) {
-                        dado *m = menor_info(right);
-                        if (m) copia_dados(&pai->info2, *m, pai->tipo);
-                    }
-                    /* finally merge medio with esquerda: move left.info2 or left.info1 as needed */
-                    if (left) {
-                        if (left->ninfos == 2) {
-                            /* left.info2 moves into mid.info1 (but mid already has two infos) -> instead shift */
-                            copia_dados(&mid->info1, left->info2, pai->tipo);
-                            /* adjust left */
-                            left->ninfos = 1;
-                        } else {
-                            /* left has 1 info: mid will already have two infos; free left and adjust pointers */
-                            free(left);
-                            pai->esq = NULL;
-                        }
-                    }
-                }
+        }
+        /* borrow case: pos == 1 (meio) -> tentar emprestar de left (prefer) ou right */
+        else if (pos == 1) {
+            if(pai->esq->ninfos==1 && pai->meio->esq->ninfos==2 && pai->ninfos==2){
+                copia_dados(&(pai->esq->info2), pai->info1, pai->tipo);
+                copia_dados(&pai->info1, pai->info2, pai->tipo);
+                pai->esq->dir = pai->meio->esq;
+                free(pai->meio);
+                pai->meio = pai->dir;
+                pai->dir = NULL;
+                pai->ninfos=1;
+                pai->esq->ninfos = 2;
+                return;
             }
-        } else if (pos == 2) {
-            /* underflow no filho direito */
-            if (pai->ninfos == 1) {
-                /* pai tem 1 info: descer info1 (único) para a direita e juntar meio+dir */
-                if (!right) right = pai->dir;
-                if (right) {
-                    copia_dados(&right->info1, pai->info1, pai->tipo);
-                    if (mid) {
-                        if (mid->ninfos == 2) {
-                            /* mid.info2 -> right.info2 */
-                            copia_dados(&right->info2, mid->info2, pai->tipo);
-                            right->ninfos = 2;
-                            mid->ninfos = 1;
-                        } else {
-                            /* mid has 1 info: right absorve mid */
-                            copia_dados(&right->info2, mid->info1, pai->tipo);
-                            right->ninfos = 2;
-                            free(mid);
-                            pai->meio = NULL;
-                            pai->dir = right;
-                            pai->ninfos = 0;
-                        }
-                    }
-                }
-            } else {
-                /* pai tem 2 infos: desce info2 (se existir) ou info1 para a direita e juntar meio+dir */
-                if (!right) right = pai->dir;
-                if (right) {
-                    if (pai->ninfos == 2) {
-                        copia_dados(&right->info1, pai->info2, pai->tipo);
-                        /* parent.info2 should be filled later by a value from left/center if needed (not handled here) */
-                    } else {
-                        copia_dados(&right->info1, pai->info1, pai->tipo);
-                    }
 
-                    if (mid) {
-                        if (mid->ninfos == 2) {
-                            /* mid.info2 moves into right.info2 */
-                            copia_dados(&right->info2, mid->info2, pai->tipo);
-                            right->ninfos = 2;
-                            mid->ninfos = 1;
-                        } else {
-                            copia_dados(&right->info2, mid->info1, pai->tipo);
-                            right->ninfos = 2;
-                            free(mid);
-                            pai->meio = NULL;
-                        }
-                    }
-                    /* after merging we may want to clear parent.info2 if we used it; leave parent state
-                    to be treated by upper recursion (as requested). */
-                }
+            if(pai->esq->ninfos==1 && pai->meio->esq->ninfos==2 && pai->ninfos==2 && pai->dir->ninfos==2){
+                copia_dados(&pai->meio->info1,pai->info2, pai->tipo);
+                copia_dados(&pai->info2, pai->dir->info1, pai->tipo);
+                copia_dados(&(pai->dir->info1), pai->dir->info2, pai->tipo);
+                pai->meio->esq = pai->dir->esq;
+                pai->dir->esq = pai->dir->meio;
+                pai->dir->meio = pai->dir->dir;
+                pai->dir->dir = NULL;
+                pai->dir->ninfos=1;
+                pai->meio->ninfos = 1;
+                return;
+            }
+
+            if(pai->esq->ninfos==1 && pai->meio->esq->ninfos==2 && pai->ninfos==1){
+                copia_dados(&(pai->esq->info2), pai->info1, pai->tipo);
+                pai->esq->dir = pai->meio->esq;
+                pai->ninfos=0;
+                pai->esq->ninfos=2;
+                free(pai->meio);
+                pai->meio = NULL;
+                return;
+            }
+
+            if(pai->esq->ninfos==2 && pai->meio->esq->ninfos==2){
+                copia_dados(&(pai->meio->info1),pai->info1, pai->tipo);
+                copia_dados(&pai->info1, pai->esq->info2, pai->tipo);
+                pai->meio->meio = pai->meio->esq;
+                pai->meio->esq = pai->esq->dir;
+                pai->esq->ninfos=1;
+                pai->meio->ninfos = 1;
+                return;
             }
         }
-
+        /* borrow case: pos == 2 (dir) -> tentar emprestar de meio */
+        if (pos == 2) {
+            if(pai->meio->ninfos==1 && pai->ninfos==2){
+                copia_dados(&(pai->meio->info2), pai->info2, pai->tipo);
+                pai->meio->dir = pai->dir->esq;
+                pai->dir = NULL;
+                pai->ninfos=1;
+                pai->meio->ninfos=2;
+                return;
+            }
+            if(pai->meio->ninfos==2){
+                copia_dados(&(pai->dir->info1), pai->info2, pai->tipo);
+                copia_dados(&pai->info2, pai->meio->info2, pai->tipo);
+                pai->dir->meio = pai->dir->esq;
+                pai->dir->esq = pai->meio->dir;
+                pai->meio->ninfos=1;
+                pai->dir->ninfos=1;
+                return;
+            }
+        }
     }
+    
+}
 
+
+// ...existing code...
+
+/* encontra o nó e seu pai contendo o maior elemento da subárvore 'raiz' */
+void find_max_node_with_parent(NoRB** raiz,NoRB** pai,dado *maior) {
+    if(*raiz){
+        if((*raiz)->dir){
+            (*pai) = (*raiz);
+            find_max_node_with_parent(&(*raiz)->dir, pai, maior);
+        }
+        else{
+            if ((*raiz)->ninfos == 2){
+                copia_dados(maior,(*raiz)->info2,(*raiz)->tipo);
+            }
+            else{
+                copia_dados(maior,(*raiz)->info1,(*raiz)->tipo);
+            }
+        }
+    }
+}
+
+void find_min_node_with_parent(NoRB** raiz,NoRB** pai,dado *menor) {
+    if(*raiz){
+        copia_dados(menor,(*raiz)->info1,(*raiz)->tipo);
+        if((*raiz)->esq){
+            (*pai) = *raiz;
+            find_min_node_with_parent(&(*raiz)->esq, pai, menor);
+        }
+    }
 }
 
 /* Função de remoção solicitada: remove valor que pode estar em nó interno.
@@ -623,35 +566,21 @@ void remove_no(NoRB** raiz, char* info, NoRB* pai, int* flag) {
         char *k2 = ((*raiz)->ninfos == 2) ? (*raiz)->info2.artista.nome : NULL;
         if (compare_numeric_prefix(info, k1) == 0) {
             if (eh_folha(*raiz)) {
+                /* remover info1 em folha com 1 info */
                 remove_info1_da_folha(raiz, pai, 1);
                 *flag = 1; 
             }
             else {
                 /* nó interno: procurar maior na subárvore esquerda */
-                NoRB *parent_max = NULL;
-                NoRB *max_node = find_max_node_with_parent((*raiz)->esq, &parent_max);
+                dado max_info;
+                NoRB *pai_no = (*raiz);
+                find_max_node_with_parent(&(*raiz)->esq, &pai_no, &max_info);
                 /* copia maior encontrado para info1 do nó atual */
-                if (max_node->ninfos == 2) {
-                    copia_dados(&(*raiz)->info1, max_node->info2, (*raiz)->tipo);
-                }
-                else {
-                    copia_dados(&(*raiz)->info1, max_node->info1, (*raiz)->tipo);
-                }
-                /* agora remover a ocorrência duplicada na subárvore esquerda.
-                Chama recursivamente remove_no na subárvore esquerda para apagar a chave usada. */
-                char key_to_remove[MAX_NOME];
-                if (max_node->ninfos == 2){
-                    strncpy(key_to_remove, max_node->info2.artista.nome, MAX_NOME);
-                }
-                else{
-                    strncpy(key_to_remove, max_node->info1.artista.nome, MAX_NOME);
-                }
-                key_to_remove[MAX_NOME-1] = '\0';
-                int f = 0;
-                remove_no(&(*raiz)->esq, key_to_remove, *raiz, &f);
+                copia_dados(&(*raiz)->info1, max_info, (*raiz)->tipo);
+                remove_no(&(*raiz)->esq, max_info.artista.nome, (*raiz), flag);
                 /* após retorno: se o filho esquerdo ficou sem infos (ou foi liberado), reorganize apenas o nó 'no' */
-                if((*raiz)->esq == NULL || ((*raiz)->esq && (*raiz)->esq->ninfos == 0)) {
-                    fix_parent_after_child_underflow(*raiz, 0);
+                if((pai->esq==(*raiz)) && (*raiz)->esq->ninfos == 0) {
+                    fix_parent_after_child_underflow(pai, 0);
                 }
                 *flag = 1;
             }
@@ -667,53 +596,24 @@ void remove_no(NoRB** raiz, char* info, NoRB* pai, int* flag) {
             else{
                 /* nó interno: procurar maior da subárvore meio/direita conforme política (usar dir preferencial) */
                 /* procurar maior na subárvore do meio primeiro (pode ajustar para dir se desejar) */
-                NoRB *parent_max = NULL;
-                NoRB *max_node = find_max_node_with_parent((*raiz)->meio, &parent_max);
-                if (!max_node) {
-                    max_node = find_max_node_with_parent((*raiz)->dir, &parent_max);
-                    /* copiar maior da dir para info2 */
-                    if (max_node->ninfos == 2){
-                        copia_dados(&(*raiz)->info2, max_node->info2, (*raiz)->tipo);
-                    }
-                    else{
-                        copia_dados(&(*raiz)->info2, max_node->info1, (*raiz)->tipo);
-                    }
-                    /* remover duplicata recursivamente na subárvore direita */
-                    char key_to_remove[MAX_NOME];
-                    if(max_node->ninfos == 2){
-                        strncpy(key_to_remove, max_node->info2.artista.nome, MAX_NOME);
-                    }
-                    else {
-                        strncpy(key_to_remove, max_node->info1.artista.nome, MAX_NOME);
-                    }
-                    key_to_remove[MAX_NOME-1] = '\0';
-                    int f = 0;
-                    remove_no(&(*raiz)->dir, key_to_remove, *raiz, &f);
-                    if ((*raiz)->dir == NULL || ((*raiz)->dir && (*raiz)->dir->ninfos == 0)) {
-                        fix_parent_after_child_underflow(*raiz, 2);
+                NoRB *pai_no = NULL;
+                dado info;
+                find_min_node_with_parent(&(*raiz)->dir, &pai_no, &info);
+                if (!pai_no) {
+                    find_max_node_with_parent(&(*raiz)->meio, &pai_no, &info);
+                    copia_dados(&(*raiz)->info2,info, (*raiz)->tipo);
+                    remove_no(&(*raiz)->meio, info.artista.nome, (*raiz), flag);
+                    if ((*raiz)->dir->ninfos == 0){
+                        fix_parent_after_child_underflow(pai, 2);
                     }
                     *flag = 1;
                 }
                 else {
                     /* copiar maior do meio para info2 */
-                    if (max_node->ninfos == 2){
-                        copia_dados(&(*raiz)->info2, max_node->info2, (*raiz)->tipo);
-                    }
-                    else {
-                        copia_dados(&(*raiz)->info2, max_node->info1, (*raiz)->tipo);
-                    }
-                    char key_to_remove[MAX_NOME];
-                    if(max_node->ninfos == 2){
-                        strncpy(key_to_remove, max_node->info2.artista.nome, MAX_NOME);
-                    }
-                    else{
-                        strncpy(key_to_remove, max_node->info1.artista.nome, MAX_NOME);
-                    }
-                    key_to_remove[MAX_NOME-1] = '\0';
-                    int f = 0;
-                    remove_no(&(*raiz)->meio, key_to_remove, *raiz, &f);
-                    if ((*raiz)->meio == NULL || ((*raiz)->meio && (*raiz)->meio->ninfos == 0)) {
-                        fix_parent_after_child_underflow(*raiz, 1);
+                    copia_dados(&(*raiz)->info2, info, (*raiz)->tipo);
+                    remove_no(&(*raiz)->dir, info.artista.nome, (*raiz), flag);
+                    if ((*raiz)->ninfos == 0) {
+                        fix_parent_after_child_underflow(pai, 1);
                     }
                     *flag = 1;
                 }
@@ -722,23 +622,34 @@ void remove_no(NoRB** raiz, char* info, NoRB* pai, int* flag) {
         else{
             /* caso: chave não está no nó -> descer recursivamente para o filho correto */
             if (compare_numeric_prefix(info, k1) < 0) {
-                remove_no(&(*raiz)->esq, info, *raiz, flag);
+                remove_no(&(*raiz)->esq, info, (*raiz), flag);
                 /* se filho esq ficou com 0 infos, conserte apenas o nó no */
-                if ((*raiz)->esq == NULL || ((*raiz)->esq && (*raiz)->esq->ninfos == 0)) {
-                    fix_parent_after_child_underflow(*raiz, 0);
+                if(pai){
+                    if(pai->meio==(*raiz) && (*raiz)->ninfos == 0) {
+                        fix_parent_after_child_underflow(pai, 1);
+                    }
+                    else if (pai->esq==(*raiz) && (*raiz)->ninfos == 0) {
+                        fix_parent_after_child_underflow(pai, 0);
+                    }
                 }
             }
             else {
                 if (k2 == NULL || compare_numeric_prefix(info, k2) < 0) {
-                    remove_no(&(*raiz)->meio, info, *raiz, flag);
-                    if ((*raiz)->meio == NULL || ((*raiz)->meio && (*raiz)->meio->ninfos == 0)) {
-                        fix_parent_after_child_underflow(*raiz, 1);
+                    remove_no(&(*raiz)->meio, info, (*raiz), flag);
+                    if(pai){
+                        if(pai->esq==(*raiz) && (*raiz)->ninfos == 0) {
+
+                            fix_parent_after_child_underflow(pai, 0);
+                        }
+                        else if(pai->meio == (*raiz) && (*raiz)->ninfos == 0) {
+                            fix_parent_after_child_underflow(pai, 1);
+                        }
                     }
                 }
                 else{
-                    remove_no(&(*raiz)->dir, info, *raiz, flag);
-                    if ((*raiz)->dir == NULL || ((*raiz)->dir && (*raiz)->dir->ninfos == 0)) {
-                        fix_parent_after_child_underflow(*raiz, 2);
+                    remove_no(&(*raiz)->dir, info, (*raiz), flag);
+                    if (((*raiz)->ninfos == 0)) {
+                        fix_parent_after_child_underflow(pai, 2);
                     }
                 }
             }

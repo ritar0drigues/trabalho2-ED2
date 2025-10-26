@@ -144,8 +144,7 @@ void menu_albuns(NoRB** raiz, dado* artista){
                     printf("Nenhum album cadastrado.\n");
                 }
                 else{
-                    int cont = 0;
-                    imprimirArvore(*raiz,&cont);
+                    imprimirArvore(*raiz);
                 }
                 break;
             }
@@ -173,6 +172,8 @@ void menu_albuns(NoRB** raiz, dado* artista){
                 if(opcao=='1'){
                     int flag;
                     remove_no(raiz,nome,NULL,&flag);
+                    copia_dados(&(*raiz)->info1, (*raiz)->info2, NO_ALBUM);
+                    (*raiz)->ninfos = 1;
                     if(flag){
                         artista->artista.qtd_albuns--;
                         printf("Album %s removido com sucesso.\n", nome);
@@ -251,12 +252,11 @@ int main(){
             break;
         }
         case 2:{
-            int cont = 0;
             if(raiz==NULL){
                 printf("Nenhum artista cadastrado.\n");
             }
             else{
-                imprimirArvore(raiz, &cont);
+                imprimirArvore(raiz);
             }
             break;
         }
