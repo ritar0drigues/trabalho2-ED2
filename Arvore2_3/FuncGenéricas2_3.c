@@ -2,9 +2,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <stdio.h>
-#include <stdlib.h>
 #include <ctype.h>
 
 // compara strings que começam com números numericamente
@@ -50,8 +47,8 @@ void copia_dados(dado *recebe, dado envia, TipoNo tipo){
 }
 
 /* cria um nó com cópia dos campos (não aloca strings dinamicamente) */
-NoRB *criar_no(dado *dados, NoRB *FEsq, NoRB *FCen, TipoNo tipo){
-    NoRB *novo = (NoRB *)malloc(sizeof(NoRB));
+No23 *criar_no(dado *dados, No23 *FEsq, No23 *FCen, TipoNo tipo){
+    No23 *novo = (No23 *)malloc(sizeof(No23));
     novo->tipo = tipo;
     novo->esq = FEsq;
     novo->meio = FCen;
@@ -77,13 +74,13 @@ NoRB *criar_no(dado *dados, NoRB *FEsq, NoRB *FCen, TipoNo tipo){
     return novo;
 }
 
-int eh_folha(NoRB *NO)
+int eh_folha(No23 *NO)
 {
     return (NO->esq == NULL);
 }
 
 /* adiciona 'info' em NO que tem 1 info (passando filho referente ao lado direito quando necessário) */
-void adiciona_info(NoRB **NO, dado *info, NoRB *filho){
+void adiciona_info(No23 **NO, dado *info, No23 *filho){
     char *nomeInfo =  info->artista.nome;
     char *nome1 = (*NO)->info1.artista.nome;
     if (compare_numeric_prefix(nomeInfo, nome1) > 0){
@@ -101,8 +98,8 @@ void adiciona_info(NoRB **NO, dado *info, NoRB *filho){
 
 /* quebra um nó com 2 infos inserindo 'info' (ou promovendo *sobe); retorna novo irmão direito (maior) e preenche *sobe com dado promovido.
    filho é o ponteiro direito correspondente à info passada (pode ser NULL para folhas). */
-NoRB *quebrar_NO(NoRB **NO, dado *info, NoRB *filho, dado **sobe){
-    NoRB *maior = NULL;
+No23 *quebrar_NO(No23 **NO, dado *info, No23 *filho, dado **sobe){
+    No23 *maior = NULL;
     if ((*NO)){
         TipoNo tipo = (*NO)->tipo;
         char *a_name = (*NO)->info1.artista.nome;
@@ -140,8 +137,8 @@ NoRB *quebrar_NO(NoRB **NO, dado *info, NoRB *filho, dado **sobe){
 
 /* função de inserção recursiva: retorna irmão direito criado (maior) se o nó atual foi quebrado e precisa propagar, caso contrário retorna NULL.
    Se um split sobe para uma raiz (pai == NULL), esta função transforma a raiz em novo nó contendo *sobe e filhos old + maior. */
-NoRB *inserirNo(NoRB **raiz, dado *dados, TipoNo tipo, NoRB *pai, dado **sobe, int *flag){
-    NoRB *maior = NULL;
+No23 *inserirNo(No23 **raiz, dado *dados, TipoNo tipo, No23 *pai, dado **sobe, int *flag){
+    No23 *maior = NULL;
     if (*raiz == NULL){
         *raiz = criar_no(dados, NULL, NULL, tipo);
         if (*raiz){
@@ -167,9 +164,30 @@ NoRB *inserirNo(NoRB **raiz, dado *dados, TipoNo tipo, NoRB *pai, dado **sobe, i
         }
         else{
             /* decide em qual filho descer */
-            char *nomeInfo = (tipo == NO_ARTISTA) ? dados->artista.nome : dados->album.nome;
-            char *r_info1 = ( (*raiz)->tipo == NO_ARTISTA ) ? (*raiz)->info1.artista.nome : (*raiz)->info1.album.nome;
-            char *r_info2 = ( (*raiz)->ninfos == 2 ) ? ( ( (*raiz)->tipo == NO_ARTISTA ) ? (*raiz)->info2.artista.nome : (*raiz)->info2.album.nome ) : NULL;
+            char *nomeInfo;
+            if (tipo == NO_ARTISTA) {
+                nomeInfo = dados->artista.nome;
+            } else {
+                nomeInfo = dados->album.nome;
+            }
+
+            char *r_info1;
+            if ((*raiz)->tipo == NO_ARTISTA) {
+                r_info1 = (*raiz)->info1.artista.nome;
+            } else {
+                r_info1 = (*raiz)->info1.album.nome;
+            }
+
+            char *r_info2;
+            if ((*raiz)->ninfos == 2) {
+                if ((*raiz)->tipo == NO_ARTISTA) {
+                    r_info2 = (*raiz)->info2.artista.nome;
+                } else {
+                    r_info2 = (*raiz)->info2.album.nome;
+                }
+            } else {
+                r_info2 = NULL;
+            }
             if (compare_numeric_prefix(nomeInfo, r_info1) < 0){
                 maior = inserirNo(&(*raiz)->esq, dados, tipo, *raiz, sobe, flag);
             }
@@ -216,7 +234,7 @@ void exibe_dados(dado dado, TipoNo tipo){
     }
 }
 
-void imprimirArvore(NoRB *raiz){
+void imprimirArvore(No23 *raiz){
     if (raiz){
         imprimirArvore(raiz->esq);
         exibe_dados(raiz->info1, raiz->tipo);
@@ -228,7 +246,7 @@ void imprimirArvore(NoRB *raiz){
     }
 }
 
-dado* buscar_item(NoRB* raiz, char* nome) {
+dado* buscar_item(No23* raiz, char* nome) {
     if(raiz && nome){
         dado* resultado = NULL;
         /* obtém chaves do nó conforme tipo */
@@ -259,7 +277,7 @@ dado* buscar_item(NoRB* raiz, char* nome) {
     }
 }
 
-void cont_infos(NoRB* raiz, int* cont){
+void cont_infos(No23* raiz, int* cont){
     if (raiz){
         (*cont)++;
         cont_infos(raiz->esq, cont);
@@ -272,22 +290,21 @@ void cont_infos(NoRB* raiz, int* cont){
 }
 
 // Retorna a menor info de uma subárvore (info1 ou info2)
-dado* menor_info(NoRB* raiz) {
-    if (!raiz) return NULL;
-
-    NoRB* atual = raiz;
+dado* menor_info(No23* raiz) {
+    if (raiz){
+    No23* atual = raiz;
     while (atual->esq) {
         atual = atual->esq;
     }
     // Sempre retorna info1, que é a menor dentro do nó
-    return &atual->info1;
+    return &atual->info1;   
+    }
 }
-
 // Retorna a maior info de uma subárvore (info1 ou info2)
-dado* maior_info(NoRB* raiz) {
-    if (!raiz) return NULL;
+dado* maior_info(No23* raiz) {
+    if (raiz){
 
-    NoRB* atual = raiz;
+    No23* atual = raiz;
     while (atual->dir) {
         atual = atual->dir;
     }
@@ -296,107 +313,165 @@ dado* maior_info(NoRB* raiz) {
         return &atual->info2;
     else
         return &atual->info1;
+    }
 }
 
+void remove_info1_da_folha(No23** raiz, No23* pai, int n_da_info){
+    // Usamos um flag para controlar se a remoção já foi concluída,
+    // garantindo que apenas a lógica necessária seja executada.
+    int reestruturacao_necessaria = 0;
 
-
-
-void remove_info1_da_folha(NoRB** raiz, NoRB* pai, int n_da_info){
     if(*raiz){
+        // ===================================
+        // 1. CASO NÓ COM PAI (Não-Raiz)
+        // ===================================
         if(pai){
-            int infos = 0;
-            cont_infos(pai,&infos);
-            if (pai->esq == *raiz) {
-                if((*raiz)->ninfos==2){
+            // A) Remoção Simples (não causa underflow: ninfos == 2)
+            if((*raiz)->ninfos==2){
+                if(n_da_info == 1){
                     copia_dados(&(*raiz)->info1, (*raiz)->info2, (*raiz)->tipo);
-                    (*raiz)->ninfos=1;
                 }
-                else if(infos>3){
-                        if(pai->meio->ninfos==2){
-                            copia_dados(&pai->esq->info1,pai->info1,pai->tipo);
-                            copia_dados(&pai->info1,pai->meio->info1,pai->tipo);
-                            copia_dados(&pai->meio->info1,pai->meio->info2,pai->tipo);
-                            pai->meio->ninfos=1;
-                        }
-                        else if(pai->ninfos==2){
-                            copia_dados(&pai->esq->info1,pai->info1,pai->tipo);
-                            copia_dados(&pai->info1,pai->meio->info1,pai->tipo);
-                            copia_dados(&pai->meio->info1,pai->info2,pai->tipo);
-                            if(pai->dir->ninfos==2){
-                                copia_dados(&pai->info2,pai->dir->info1,pai->tipo);
-                                copia_dados(&pai->dir->info1,pai->dir->info2,pai->tipo);
-                                pai->dir->ninfos=1;
-                            }
-                            else{
-                                copia_dados(&pai->meio->info2,pai->dir->info1,pai->tipo);
-                                pai->ninfos = 1;
-                                pai->meio->ninfos = 2;
-                            }
-                        }
-                }
-                else{
-                    copia_dados(&pai->esq->info1, pai->info1, pai->tipo);
-                    copia_dados(&pai->esq->info2, pai->meio->info1, pai->tipo);
-                    pai->esq->ninfos = 2;
-                    free(pai->meio);
-                    pai->meio = NULL;
-                    pai->ninfos = 0;
-                }
+                (*raiz)->ninfos = 1;
+                // reestruturacao_necessaria permanece 0.
             }
-            else if(pai->meio == *raiz){
-                if((*raiz)->ninfos==2){
-                    copia_dados(&pai->dir->info1, (*raiz)->info2, pai->tipo);
-                    (*raiz)->ninfos=1;
-                }
-                else if(infos>3){
-                        if(pai->ninfos==1){
-                            copia_dados(&pai->meio->info1,pai->info1,pai->tipo);
-                            copia_dados(&pai->info1,pai->esq->info2,pai->tipo);
-                            pai->esq->ninfos=0;
-                        }
-                        else{
-                            copia_dados(&(*raiz)->info1,pai->info2,pai->tipo);
-                            copia_dados(&(pai->info2),pai->dir->info1,pai->tipo);
-                            if(pai->dir->ninfos==1){
-                                free(pai->dir);
-                                copia_dados(&(*raiz)->info2,pai->info2,pai->tipo);
-                                pai->ninfos = 1;
-                            }
-                            else{
-                                copia_dados(&pai->dir->info1,pai->dir->info2,pai->tipo);
-                            }
-                        }
-                }
-                else{
-                    copia_dados(&pai->esq->info2, pai->info1, pai->tipo);
-                    pai->esq->ninfos=2;
-                    free(pai->meio);
-                    pai->meio=NULL;
-                    pai->ninfos=0;
-                }
+            // B) Remoção que causa Underflow (ninfos == 1)
+            else{
+                reestruturacao_necessaria = 1;
             }
-            else if(pai->dir == *raiz){
-                if((*raiz)->ninfos==2){
-                    copia_dados(&pai->dir->info1, (*raiz)->info2, pai->tipo);
-                    (*raiz)->ninfos=1;
-                }
-                else{
-                    if(pai->meio->ninfos==1){
-                        copia_dados(&pai->meio->info2,pai->info2,pai->tipo);
-                        pai->ninfos = 1;
-                        pai->meio->ninfos = 2;
-                        free(pai->dir);
+
+            if(reestruturacao_necessaria){
+                int infos = 0;
+                cont_infos(pai, &infos); 
+
+                // ===================================
+                // A) NÓ ESQUERDO (*raiz == pai->esq)
+                // ===================================
+                if (pai->esq == *raiz) {
+                    
+                    // Empréstimo do Irmão do Meio (pai->meio->ninfos == 2)
+                    if(pai->meio && pai->meio->ninfos == 2){
+                        // 1. O nó esvaziado (*raiz) recebe a info1 do pai
+                        copia_dados(&(*raiz)->info1, pai->info1, pai->tipo); 
+                        
+                        // 2. A info1 do irmão (pai->meio->info1) sobe para o pai (info1)
+                        copia_dados(&pai->info1, pai->meio->info1, pai->tipo);
+                        
+                        // 3. O irmão (meio) desloca suas chaves
+                        copia_dados(&pai->meio->info1, pai->meio->info2, pai->tipo);
+                        
+                        (*raiz)->ninfos = 1; 
+                        pai->meio->ninfos = 1; 
                     }
+                    // Fusão com o Irmão do Meio (pai->meio->ninfos == 1)
                     else{
-                        copia_dados(&(*raiz)->info1,pai->info2,pai->tipo);
-                        copia_dados(&pai->info2,pai->meio->info2,pai->tipo);
+                        // 1. Fundir no Irmão (pai->meio)
+                        copia_dados(&pai->meio->info2, pai->meio->info1, pai->tipo); 
+                        copia_dados(&pai->meio->info1, pai->info1, pai->tipo);
+                        pai->meio->ninfos = 2; 
+
+                        // 2. Libera o nó esvaziado (*raiz)
+                        free(*raiz); 
+                        
+                        // 3. Ajustar os ponteiros e chaves do Pai
+                        pai->esq = pai->meio; 
+                        pai->meio = pai->dir; 
+                        pai->dir = NULL;
+                        
+                        // O pai perdeu a info1 e ajusta ninfos
+                        copia_dados(&pai->info1, pai->info2, pai->tipo); 
+                        pai->ninfos--; 
+                    }
+                }
+                
+                // ===================================
+                // B) NÓ DO MEIO (*raiz == pai->meio)
+                // ===================================
+                else if(pai->meio == *raiz){
+                    // Empréstimo do Irmão Esquerdo (pai->esq->ninfos == 2) - Preferencial
+                    if(pai->esq->ninfos == 2){
+                        // 1. O nó esvaziado (*raiz) recebe a info1 do pai
+                        copia_dados(&(*raiz)->info1, pai->info1, pai->tipo); 
+                        
+                        // 2. A info2 do irmão esquerdo sobe para o pai (info1)
+                        copia_dados(&pai->info1, pai->esq->info2, pai->tipo);
+                        
+                        // 3. O irmão esquerdo perde a info2
+                        pai->esq->ninfos = 1;
+                        (*raiz)->ninfos = 1;
+                    }
+                    
+                    // Empréstimo do Irmão Direito (pai->dir->ninfos == 2)
+                    else if(pai->dir && pai->dir->ninfos == 2){
+                        // 1. O nó esvaziado (*raiz) recebe a info2 do pai
+                        copia_dados(&(*raiz)->info1, pai->info2, pai->tipo); 
+                        
+                        // 2. A info1 do irmão direito sobe para o pai (info2)
+                        copia_dados(&pai->info2, pai->dir->info1, pai->tipo);
+                        
+                        // 3. O irmão direito desloca chaves
+                        copia_dados(&pai->dir->info1, pai->dir->info2, pai->tipo);
+                        
+                        pai->dir->ninfos = 1;
+                        (*raiz)->ninfos = 1;
+                    }
+
+                    // Fusão com o Irmão Esquerdo (pai->esq->ninfos == 1)
+                    else{
+                        // 1. Fundir no Irmão Esquerdo (pai->esq)
+                        copia_dados(&pai->esq->info2, pai->info1, pai->tipo); 
+                        pai->esq->ninfos = 2;
+                        
+                        // 2. Libera o nó esvaziado (*raiz)
+                        free(*raiz);
+                        
+                        // 3. Ajustar os ponteiros e chaves do Pai
+                        pai->meio = pai->dir; 
+                        pai->dir = NULL;
+                        
+                        // O pai perdeu a info1 e ajusta ninfos
+                        copia_dados(&pai->info1, pai->info2, pai->tipo); 
+                        pai->ninfos--; 
+                    }
+                }
+                
+                // ===================================
+                // C) NÓ DIREITO (*raiz == pai->dir)
+                // ===================================
+                else if(pai->dir == *raiz){
+                    // Empréstimo do Irmão do Meio (pai->meio->ninfos == 2)
+                    if(pai->meio->ninfos == 2){
+                        // 1. O nó esvaziado (*raiz) recebe a info2 do pai
+                        copia_dados(&(*raiz)->info1, pai->info2, pai->tipo); 
+                        
+                        // 2. A info2 do irmão do meio sobe para o pai (info2)
+                        copia_dados(&pai->info2, pai->meio->info2, pai->tipo);
+                        
+                        // 3. O irmão do meio perde a info2
                         pai->meio->ninfos = 1;
+                        (*raiz)->ninfos = 1;
+                    }
+                    // Fusão com o Irmão do Meio (pai->meio->ninfos == 1)
+                    else{
+                        // 1. Fundir no Irmão do Meio (pai->meio)
+                        copia_dados(&pai->meio->info2, pai->info2, pai->tipo); 
+                        pai->meio->ninfos = 2;
+                        
+                        // 2. Libera o nó esvaziado (*raiz)
+                        free(*raiz); 
+                        
+                        // 3. Ajustar os ponteiros e chaves do Pai
+                        pai->dir = NULL;
+                        pai->ninfos = 1; 
                     }
                 }
             }
         }
+        
+        // ===================================
+        // 2. CASO REMOVENDO DA RAIZ (Não tem Pai)
+        // ===================================
         else{
-            // Removendo da raiz
+            // Removendo da raiz (Seu código original é OK)
             if((*raiz)->ninfos==2){
                 copia_dados(&(*raiz)->info1,(*raiz)->info2,(*raiz)->tipo);
                 (*raiz)->ninfos=1;
@@ -407,13 +482,45 @@ void remove_info1_da_folha(NoRB** raiz, NoRB* pai, int n_da_info){
             }
         }
     }
+    // Único ponto de saída da função (implicitamente, retorna void)
 }
 
+static void fix_parent_after_child_underflow(No23 *pai, int pos) {
+    // Flag para indicar se uma reestruturação foi realizada
+    int action_performed = 0;
 
-static void fix_parent_after_child_underflow(NoRB *pai, int pos) {
     if (pai){
+        // ===================================
+        // 1. CASO POS == 0 (Filho Esquerdo em Underflow: pai->esq)
+        // ===================================
         if (pos == 0) {
-            if(pai->esq->esq->ninfos==1 && pai->ninfos==1 && pai->meio->ninfos==1){
+            
+            // A) Empréstimo Simples do Irmão do Meio (PRIORITÁRIO: pai->meio->ninfos == 2)
+            if (pai->meio && pai->meio->ninfos == 2 && pai->ninfos >= 1) { 
+                
+                // 1. A chave separadora do pai (info1) desce para o nó esvaziado (esq->info1)
+                copia_dados(&(pai->esq->info1), pai->info1, pai->tipo); 
+                
+                // 2. A chave do irmão (meio->info1) sobe para o pai (info1)
+                copia_dados(&(pai->info1), pai->meio->info1, pai->tipo); 
+                
+                // 3. Ajuste de Ponteiros: Ponteiro do irmão (meio->esq) desce para esq->meio
+                pai->esq->meio = pai->meio->esq; 
+                
+                // 4. O irmão (meio) desloca chaves e ponteiros
+                copia_dados(&(pai->meio->info1), pai->meio->info2, pai->tipo); 
+                pai->meio->esq = pai->meio->meio;
+                pai->meio->meio = pai->meio->dir;
+                pai->meio->dir = NULL;
+                
+                pai->esq->ninfos = 1; 
+                pai->meio->ninfos = 1; 
+                action_performed = 1; 
+            }
+            
+            // B) Blocos de Fusão Complexa (SE O EMPRÉSTIMO FALHOU)
+            else { // Se pai->meio->ninfos == 1 (Fusão)
+                if(pai->esq->esq->ninfos==1 && pai->ninfos==1 && pai->meio->ninfos==1){
                     copia_dados(&pai->meio->info2, pai->meio->info1, pai->meio->tipo);
                     copia_dados(&pai->meio->info1, pai->esq->esq->info1, pai->meio->tipo);
                     pai->meio->dir = pai->meio->meio;
@@ -422,9 +529,9 @@ static void fix_parent_after_child_underflow(NoRB *pai, int pos) {
                     pai->ninfos = 0;
                     pai->esq = pai->meio;
                     pai->meio = NULL;
-                    return;
+                    action_performed = 1;
                 }
-                if(pai->esq->esq->ninfos==2 && pai->ninfos==1 && pai->meio->ninfos==1){
+                else if(pai->esq->esq->ninfos==2 && pai->ninfos==1 && pai->meio->ninfos==1){
                     copia_dados(&pai->meio->info2, pai->meio->info1, pai->meio->tipo);
                     copia_dados(&pai->meio->info1, pai->info1, pai->meio->tipo);
                     pai->meio->dir = pai->meio->meio;
@@ -435,9 +542,9 @@ static void fix_parent_after_child_underflow(NoRB *pai, int pos) {
                     pai->esq = pai->meio;
                     pai->esq->ninfos = 2;
                     pai->meio = NULL;
-                    return;
+                    action_performed = 1;
                 }
-                if(pai->esq->esq->ninfos==2 && pai->ninfos==2 && pai->meio->ninfos==1){
+                else if(pai->esq->esq->ninfos==2 && pai->ninfos==2 && pai->meio->ninfos==1){
                     copia_dados(&pai->meio->info2, pai->meio->info1, pai->meio->tipo);
                     copia_dados(&pai->meio->info1, pai->info1, pai->meio->tipo);
                     pai->meio->dir = pai->meio->meio;
@@ -450,85 +557,138 @@ static void fix_parent_after_child_underflow(NoRB *pai, int pos) {
                     pai->dir = NULL;
                     pai->ninfos = 1;
                     pai->esq->ninfos = 2;
-                    return;
+                    action_performed = 1;
                 }
-        }
-        /* borrow case: pos == 1 (meio) -> tentar emprestar de left (prefer) ou right */
-        else if (pos == 1) {
-            if(pai->esq->ninfos==1 && pai->meio->esq->ninfos==2 && pai->ninfos==2){
-                copia_dados(&(pai->esq->info2), pai->info1, pai->tipo);
-                copia_dados(&pai->info1, pai->info2, pai->tipo);
-                pai->esq->dir = pai->meio->esq;
-                free(pai->meio);
-                pai->meio = pai->dir;
-                pai->dir = NULL;
-                pai->ninfos=1;
-                pai->esq->ninfos = 2;
-                return;
             }
+        }
+        
+        // ===================================
+        // 2. CASO POS == 1 (Filho do Meio em Underflow: pai->meio)
+        // ===================================
+        else if (pos == 1) {
+            
+            // A) Empréstimo do Irmão Esquerdo (PRIORITÁRIO: pai->esq->ninfos == 2)
+            if(pai->esq && pai->esq->ninfos == 2 && pai->ninfos >= 1){
+                
+                copia_dados(&(pai->meio->info1), pai->info1, pai->tipo);
+                copia_dados(&(pai->info1), pai->esq->info2, pai->tipo);
+                
+                // Ajuste de Ponteiros
+                pai->meio->esq = pai->esq->dir; 
+                pai->esq->dir = NULL; 
+                
+                pai->esq->ninfos = 1; 
+                pai->meio->ninfos = 1; 
+                action_performed = 1;
+            }
+            
+            // B) Empréstimo do Irmão Direito (SE AINDA NÃO HOUVE AÇÃO: pai->dir->ninfos == 2)
+            else if(pai->dir && pai->dir->ninfos == 2 && pai->ninfos == 2){
+                // 1. Desce info2 do pai para meio->info1
+                copia_dados(&(pai->meio->info1), pai->info2, pai->tipo);
+                
+                // 2. Sobe info1 do dir para pai->info2
+                copia_dados(&(pai->info2), pai->dir->info1, pai->tipo);
 
-            if(pai->esq->ninfos==1 && pai->meio->esq->ninfos==2 && pai->ninfos==2 && pai->dir->ninfos==2){
-                copia_dados(&pai->meio->info1,pai->info2, pai->tipo);
-                copia_dados(&pai->info2, pai->dir->info1, pai->tipo);
+                // 3. Ajuste de Ponteiros
+                pai->meio->meio = pai->dir->esq; 
+
+                // 4. O irmão (dir) desloca chaves e ponteiros
                 copia_dados(&(pai->dir->info1), pai->dir->info2, pai->tipo);
-                pai->meio->esq = pai->dir->esq;
                 pai->dir->esq = pai->dir->meio;
                 pai->dir->meio = pai->dir->dir;
                 pai->dir->dir = NULL;
-                pai->dir->ninfos=1;
+                
+                pai->dir->ninfos = 1;
                 pai->meio->ninfos = 1;
-                return;
+                action_performed = 1; 
             }
 
-            if(pai->esq->ninfos==1 && pai->meio->esq->ninfos==2 && pai->ninfos==1){
-                copia_dados(&(pai->esq->info2), pai->info1, pai->tipo);
-                pai->esq->dir = pai->meio->esq;
-                pai->ninfos=0;
-                pai->esq->ninfos=2;
-                free(pai->meio);
-                pai->meio = NULL;
-                return;
-            }
-
-            if(pai->esq->ninfos==2 && pai->meio->esq->ninfos==2){
-                copia_dados(&(pai->meio->info1),pai->info1, pai->tipo);
-                copia_dados(&pai->info1, pai->esq->info2, pai->tipo);
-                pai->meio->meio = pai->meio->esq;
-                pai->meio->esq = pai->esq->dir;
-                pai->esq->ninfos=1;
-                pai->meio->ninfos = 1;
-                return;
+            // C) Blocos de Fusão/Casos Específicos (SE NENHUM EMPRÉSTIMO FOI POSSÍVEL)
+            else { // Se pai->esq->ninfos == 1 E pai->dir->ninfos <= 1 (Fusão)
+                 if(pai->esq->ninfos==1 && pai->meio->esq->ninfos==2 && pai->ninfos==2){
+                     copia_dados(&(pai->esq->info2), pai->info1, pai->tipo);
+                     copia_dados(&pai->info1, pai->info2, pai->tipo);
+                     pai->esq->dir = pai->meio->esq;
+                     free(pai->meio);
+                     pai->meio = pai->dir;
+                     pai->dir = NULL;
+                     pai->ninfos=1;
+                     pai->esq->ninfos = 2;
+                     action_performed = 1;
+                 }
+                 else if(pai->esq->ninfos==1 && pai->meio->esq->ninfos==2 && pai->ninfos==2 && pai->dir->ninfos==2){
+                     copia_dados(&pai->meio->info1,pai->info2, pai->tipo);
+                     copia_dados(&pai->info2, pai->dir->info1, pai->tipo);
+                     copia_dados(&(pai->dir->info1), pai->dir->info2, pai->tipo);
+                     pai->meio->esq = pai->dir->esq;
+                     pai->dir->esq = pai->dir->meio;
+                     pai->dir->meio = pai->dir->dir;
+                     pai->dir->dir = NULL;
+                     pai->dir->ninfos=1;
+                     pai->meio->ninfos = 1;
+                     action_performed = 1;
+                 }
+                 else if(pai->esq->ninfos==1 && pai->meio->esq->ninfos==2 && pai->ninfos==1){
+                     copia_dados(&(pai->esq->info2), pai->info1, pai->tipo);
+                     pai->esq->dir = pai->meio->esq;
+                     pai->ninfos=0;
+                     pai->esq->ninfos=2;
+                     free(pai->meio);
+                     pai->meio = NULL;
+                     action_performed = 1;
+                 }
+                 else if(pai->esq->ninfos==2 && pai->meio->esq->ninfos==2){
+                     copia_dados(&(pai->meio->info1),pai->info1, pai->tipo);
+                     copia_dados(&pai->info1, pai->esq->info2, pai->tipo);
+                     pai->meio->meio = pai->meio->esq;
+                     pai->meio->esq = pai->esq->dir;
+                     pai->esq->ninfos=1;
+                     pai->meio->ninfos = 1;
+                     action_performed = 1;
+                 }
             }
         }
-        /* borrow case: pos == 2 (dir) -> tentar emprestar de meio */
-        if (pos == 2) {
-            if(pai->meio->ninfos==1 && pai->ninfos==2){
-                copia_dados(&(pai->meio->info2), pai->info2, pai->tipo);
-                pai->meio->dir = pai->dir->esq;
-                pai->dir = NULL;
-                pai->ninfos=1;
-                pai->meio->ninfos=2;
-                return;
-            }
+        
+        // ===================================
+        // 3. CASO POS == 2 (Filho Direito em Underflow: pai->dir)
+        // ===================================
+        else if (pos == 2) {
+
+            // A) Empréstimo do Irmão do Meio (PRIORITÁRIO: pai->meio->ninfos == 2)
             if(pai->meio->ninfos==2){
-                copia_dados(&(pai->dir->info1), pai->info2, pai->tipo);
-                copia_dados(&pai->info2, pai->meio->info2, pai->tipo);
-                pai->dir->meio = pai->dir->esq;
-                pai->dir->esq = pai->meio->dir;
+                copia_dados(&(pai->dir->info1), pai->info2, pai->tipo); 
+                copia_dados(&pai->info2, pai->meio->info2, pai->tipo); 
+                
+                // Ajuste de Ponteiros
+                pai->dir->meio = pai->dir->esq; 
+                pai->dir->esq = pai->meio->dir; 
+                
                 pai->meio->ninfos=1;
                 pai->dir->ninfos=1;
-                return;
+                action_performed = 1;
+            }
+            
+            // B) Fusão com o Irmão do Meio (SE EMPRÉSTIMO FALHAR: pai->meio->ninfos == 1)
+            else { 
+                if(pai->meio->ninfos==1 && pai->ninfos==2){
+                    copia_dados(&(pai->meio->info2), pai->info2, pai->tipo);
+                    pai->meio->dir = pai->dir->esq;
+                    pai->dir = NULL;
+                    pai->ninfos=1;
+                    pai->meio->ninfos=2;
+                    action_performed = 1;
+                }
             }
         }
     }
-    
+    // Único ponto de saída da função (implícito)
 }
-
 
 // ...existing code...
 
 /* encontra o nó e seu pai contendo o maior elemento da subárvore 'raiz' */
-void find_max_node_with_parent(NoRB** raiz,NoRB** pai,dado *maior) {
+void find_max_node_with_parent(No23** raiz,No23** pai,dado *maior) {
     if(*raiz){
         if((*raiz)->dir){
             (*pai) = (*raiz);
@@ -545,7 +705,7 @@ void find_max_node_with_parent(NoRB** raiz,NoRB** pai,dado *maior) {
     }
 }
 
-void find_min_node_with_parent(NoRB** raiz,NoRB** pai,dado *menor) {
+void find_min_node_with_parent(No23** raiz,No23** pai,dado *menor) {
     if(*raiz){
         copia_dados(menor,(*raiz)->info1,(*raiz)->tipo);
         if((*raiz)->esq){
@@ -560,10 +720,15 @@ void find_min_node_with_parent(NoRB** raiz,NoRB** pai,dado *menor) {
    remove duplicata na subárvore esquerda e, se esse filho ficar sem infos, reorganiza apenas
    o nó pai ('pai da subárvore' que é *raiz aqui) usando fix_parent_after_child_underflow.
    A rotina faz ajustes locais no pai; underflow do próprio pai será tratado pela recursão superior. */
-void remove_no(NoRB** raiz, char* info, NoRB* pai, int* flag) {
+void remove_no(No23** raiz, char* info, No23* pai, int* flag) {
     if (*raiz) {
         char *k1 = (*raiz)->info1.artista.nome;
-        char *k2 = ((*raiz)->ninfos == 2) ? (*raiz)->info2.artista.nome : NULL;
+        char *k2;
+        if ((*raiz)->ninfos == 2) {
+            k2 = (*raiz)->info2.artista.nome;
+        } else {
+            k2 = NULL;
+        }
         if (compare_numeric_prefix(info, k1) == 0) {
             if (eh_folha(*raiz)) {
                 /* remover info1 em folha com 1 info */
@@ -573,14 +738,14 @@ void remove_no(NoRB** raiz, char* info, NoRB* pai, int* flag) {
             else {
                 /* nó interno: procurar maior na subárvore esquerda */
                 dado max_info;
-                NoRB *pai_no = (*raiz);
+                No23 *pai_no = (*raiz);
                 find_max_node_with_parent(&(*raiz)->esq, &pai_no, &max_info);
                 /* copia maior encontrado para info1 do nó atual */
                 copia_dados(&(*raiz)->info1, max_info, (*raiz)->tipo);
                 remove_no(&(*raiz)->esq, max_info.artista.nome, (*raiz), flag);
                 /* após retorno: se o filho esquerdo ficou sem infos (ou foi liberado), reorganize apenas o nó 'no' */
-                if((pai->esq==(*raiz)) && (*raiz)->esq->ninfos == 0) {
-                    fix_parent_after_child_underflow(pai, 0);
+                if((pai && pai->esq==(*raiz)) && (*raiz)->esq && (*raiz)->esq->ninfos == 0) {
+                    fix_parent_after_child_underflow((*raiz), 0);
                 }
                 *flag = 1;
             }
@@ -596,24 +761,24 @@ void remove_no(NoRB** raiz, char* info, NoRB* pai, int* flag) {
             else{
                 /* nó interno: procurar maior da subárvore meio/direita conforme política (usar dir preferencial) */
                 /* procurar maior na subárvore do meio primeiro (pode ajustar para dir se desejar) */
-                NoRB *pai_no = NULL;
-                dado info;
-                find_min_node_with_parent(&(*raiz)->dir, &pai_no, &info);
+                No23 *pai_no = NULL;
+                dado info_sucessor; // Renomeado para evitar conflito com 'info' de entrada
+                find_min_node_with_parent(&(*raiz)->dir, &pai_no, &info_sucessor);
                 if (!pai_no) {
-                    find_max_node_with_parent(&(*raiz)->meio, &pai_no, &info);
-                    copia_dados(&(*raiz)->info2,info, (*raiz)->tipo);
-                    remove_no(&(*raiz)->meio, info.artista.nome, (*raiz), flag);
-                    if ((*raiz)->dir->ninfos == 0){
-                        fix_parent_after_child_underflow(pai, 2);
+                    find_max_node_with_parent(&(*raiz)->meio, &pai_no, &info_sucessor);
+                    copia_dados(&(*raiz)->info2,info_sucessor, (*raiz)->tipo);
+                    remove_no(&(*raiz)->meio, info_sucessor.artista.nome, (*raiz), flag);
+                    if ((*raiz)->meio && (*raiz)->meio->ninfos == 0){ // Verifica ponteiro antes de ninfos
+                        fix_parent_after_child_underflow((*raiz), 1);
                     }
                     *flag = 1;
                 }
                 else {
-                    /* copiar maior do meio para info2 */
-                    copia_dados(&(*raiz)->info2, info, (*raiz)->tipo);
-                    remove_no(&(*raiz)->dir, info.artista.nome, (*raiz), flag);
-                    if ((*raiz)->ninfos == 0) {
-                        fix_parent_after_child_underflow(pai, 1);
+                    /* copiar sucessor do meio para info2 */
+                    copia_dados(&(*raiz)->info2, info_sucessor, (*raiz)->tipo);
+                    remove_no(&(*raiz)->dir, info_sucessor.artista.nome, (*raiz), flag);
+                    if ((*raiz)->dir && (*raiz)->dir->ninfos == 0) { // Verifica ponteiro antes de ninfos
+                        fix_parent_after_child_underflow((*raiz), 2);
                     }
                     *flag = 1;
                 }
@@ -624,35 +789,52 @@ void remove_no(NoRB** raiz, char* info, NoRB* pai, int* flag) {
             if (compare_numeric_prefix(info, k1) < 0) {
                 remove_no(&(*raiz)->esq, info, (*raiz), flag);
                 /* se filho esq ficou com 0 infos, conserte apenas o nó no */
-                if(pai){
-                    if(pai->meio==(*raiz) && (*raiz)->ninfos == 0) {
-                        fix_parent_after_child_underflow(pai, 1);
-                    }
-                    else if (pai->esq==(*raiz) && (*raiz)->ninfos == 0) {
-                        fix_parent_after_child_underflow(pai, 0);
-                    }
+                if ((*raiz)->esq && (*raiz)->esq->ninfos == 0) {
+                    /* Se sim, consertamos o *raiz, e o filho 'esq' é a posição 0 */
+                    fix_parent_after_child_underflow((*raiz), 0);
                 }
-            }
+                }
+            
             else {
                 if (k2 == NULL || compare_numeric_prefix(info, k2) < 0) {
                     remove_no(&(*raiz)->meio, info, (*raiz), flag);
-                    if(pai){
-                        if(pai->esq==(*raiz) && (*raiz)->ninfos == 0) {
-
-                            fix_parent_after_child_underflow(pai, 0);
-                        }
-                        else if(pai->meio == (*raiz) && (*raiz)->ninfos == 0) {
-                            fix_parent_after_child_underflow(pai, 1);
-                        }
+                    
+                    /* NOVO: Verifica se o filho meio (*raiz)->meio ficou com underflow */
+                    if ((*raiz)->meio && (*raiz)->meio->ninfos == 0) {
+                        /* Se sim, consertamos o *raiz, e o filho 'meio' é a posição 1 */
+                        fix_parent_after_child_underflow((*raiz), 1);
                     }
-                }
-                else{
+                } else {
+                   // Bloco de descida para o DIREITO
                     remove_no(&(*raiz)->dir, info, (*raiz), flag);
-                    if (((*raiz)->ninfos == 0)) {
-                        fix_parent_after_child_underflow(pai, 2);
+                    
+                    // Condição CORRIGIDA: Verifica o filho DIREITO
+                    if ((*raiz)->dir && (*raiz)->dir->ninfos == 0) {
+                        fix_parent_after_child_underflow((*raiz), 2);
                     }
                 }
             }
+        }
+
+        // ===============================================
+        // NOVO BLOCO: TRATAMENTO DE REDUÇÃO DE ALTURA (RAIZ)
+        // Lida com o caso em que a raiz fica com ninfos=0 após a reestruturação
+        // ===============================================
+        if (!pai && *raiz && (*raiz)->ninfos == 0) {
+            No23 *nova_raiz = NULL;
+            
+            // O nó underflow da raiz deve ter no máximo um filho não nulo após a fusão
+            if ((*raiz)->esq) {
+                nova_raiz = (*raiz)->esq;
+            } else if ((*raiz)->meio) {
+                nova_raiz = (*raiz)->meio;
+            } else if ((*raiz)->dir) {
+                nova_raiz = (*raiz)->dir;
+            }
+
+            // Libera o nó raiz antigo e atualiza o ponteiro de nível superior
+            free(*raiz);
+            *raiz = nova_raiz; 
         }
 
     }

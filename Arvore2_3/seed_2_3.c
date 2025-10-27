@@ -4,7 +4,7 @@
 #include <time.h>
 #include "tad.h"
 
-int seed(int num,NoRB **raiz) {
+int seed(int num,No23 **raiz) {
 
     srand((unsigned) time(NULL));
 
