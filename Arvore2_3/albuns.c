@@ -5,7 +5,7 @@
 #include "tad.h"
 
 
-int libera_albuns(NoRB* album){
+int libera_albuns(No23* album){
     if(album){
         if(libera_albuns(album->esq)){
             libera_albuns(album->dir);
